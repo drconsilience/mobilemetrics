@@ -40,7 +40,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-
+//test comment
 public class HelpView extends Fragment {
   private String mFile = "about.html";
   private int mIdFragment;

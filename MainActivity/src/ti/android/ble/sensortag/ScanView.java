@@ -107,24 +107,24 @@ public class ScanView extends Fragment {
     super.onDestroy();
   }
 
-  void setStatus(String txt) {
+  public void setStatus(String txt) {
     mStatus.setText(txt);
     mStatus.setTextAppearance(mContext, R.style.statusStyle_Success);
   }
 
-  void setStatus(String txt, int duration) {
+  public void setStatus(String txt, int duration) {
     setStatus(txt);
     mStatusTimer = new CustomTimer(null, duration, mClearStatusCallback);
   }
 
-  void setError(String txt) {
+  public void setError(String txt) {
     setBusy(false);
     stopTimers();
     mStatus.setText(txt);
     mStatus.setTextAppearance(mContext, R.style.statusStyle_Failure);
   }
 
-	void notifyDataSetChanged() {
+	public void notifyDataSetChanged() {
 		List<BleDeviceInfo> deviceList = mActivity.getDeviceInfoList();
 		if (mDeviceAdapter == null) {
 			mDeviceAdapter = new DeviceListAdapter(mActivity,deviceList);
@@ -138,7 +138,7 @@ public class ScanView extends Fragment {
 		}
 	}
 
-  void setBusy(boolean f) {
+  public void setBusy(boolean f) {
     if (mProgressBar == null)
       return;
     if (f) {
@@ -149,7 +149,7 @@ public class ScanView extends Fragment {
     }
   }
 
-  void updateGui(boolean scanning) {
+  public void updateGui(boolean scanning) {
     if (mBtnScan == null)
       return; // UI not ready
     setBusy(scanning);

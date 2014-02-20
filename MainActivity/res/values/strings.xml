@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Main activity -->
-    <string name="app_name">BLE SensorTag</string>
+    <string name="app_name">MobileMetric</string>
     <string name="button_scan">Scan</string>
     <string name="title_device_list">Device List</string>
     <string name="device">Device</string>

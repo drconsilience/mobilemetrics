@@ -289,9 +289,9 @@ public class DeviceActivity extends ViewPagerActivity {
     if (mBtGatt.discoverServices()) {
       Log.i(TAG, "START SERVICE DISCOVERY");
       mServiceList.clear();
-      setStatus("Service discovery started");
+      //setStatus("Service discovery started");
     } else {
-      setError("Service discovery start failed");
+      //setError("Service discovery start failed");
     }
   }
 
@@ -307,11 +307,11 @@ public class DeviceActivity extends ViewPagerActivity {
 
     // Characteristics descriptor readout done
     if (mServicesRdy) {
-      setStatus("Service discovery complete");
+      //setStatus("Service discovery complete");
       enableSensors(true);
       enableNotifications(true);
     } else {
-      setError("Failed to read services");
+      //setError("Failed to read services");
     }
   }
 
@@ -411,7 +411,7 @@ public class DeviceActivity extends ViewPagerActivity {
 
     switch (requestCode) {
     case PREF_ACT_REQ:
-    	mDeviceView.updateVisibility();
+    	//mDeviceView.updateVisibility();
     	Toast.makeText(this, "Applying preferences", Toast.LENGTH_SHORT).show();
       if (!mIsReceiving) {
       	mIsReceiving = true;
@@ -464,7 +464,7 @@ public class DeviceActivity extends ViewPagerActivity {
   		}
 
   		if (status != BluetoothGatt.GATT_SUCCESS) {
-  			setError("GATT error code: " + status);
+  			//setError("GATT error code: " + status);
   		}
   	}
   };

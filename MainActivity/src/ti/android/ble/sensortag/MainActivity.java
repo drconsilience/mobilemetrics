@@ -37,6 +37,8 @@ package ti.android.ble.sensortag;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mobilemetric.main.TextPlay;
+
 import ti.android.ble.common.BleDeviceInfo;
 import ti.android.ble.common.BluetoothLeService;
 import ti.android.ble.common.HelpView;

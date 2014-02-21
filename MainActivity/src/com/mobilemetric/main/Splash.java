@@ -20,8 +20,8 @@ public class Splash extends Activity{
 			public void run(){
 				try{
 					sleep(5000);
-					Intent openMainActivity = new Intent("android.intent.action.MAINACTIVITY");
-					startActivity(openMainActivity);
+					Intent openDataChoose = new Intent("android.intent.action.DATACHOOSE");
+					startActivity(openDataChoose);
 				} catch (ActivityNotFoundException a){
 					a.printStackTrace();
 				} catch (InterruptedException e) {

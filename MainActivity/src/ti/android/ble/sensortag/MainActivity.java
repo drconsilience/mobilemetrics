@@ -36,9 +36,6 @@ package ti.android.ble.sensortag;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.mobilemetric.main.TextPlay;
-
 import ti.android.ble.common.BleDeviceInfo;
 import ti.android.ble.common.BluetoothLeService;
 import ti.android.ble.common.HelpView;
@@ -394,9 +391,10 @@ public class MainActivity extends ViewPagerActivity {
     mDeviceInfoList.add(device);
     mScanView.notifyDataSetChanged();
     if (mNumDevs > 1)
-      mScanView.setStatus(mNumDevs + " devices");
+      mScanView.setStatus(mNumDevs + " devices. Please select device.");
     else
       mScanView.setStatus("1 device");
+      onDeviceClick(0);
   }
 
   private boolean deviceInfoExists(String address) {

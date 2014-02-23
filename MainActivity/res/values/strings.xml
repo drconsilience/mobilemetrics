@@ -15,7 +15,7 @@
     <string name="bt_not_on">Bluetooth was not turned on</string>
     <string name="app_closing">Exiting BLE SensorTag app</string>
     <string-array name="device_filter"><item>SensorTag</item></string-array>
-    <string name="nodevice">There are no SensorTags advertising within range. Please push the side button on the SensorTag to start advertising.</string>
+    <string name="nodevice">&quot;Sorry! We can't find your sensor. Press the button on the side to turn it on. If it still isn't working, you may need to change the battery.&quot;</string>
     <string name="scan_advice">The Android device is not scanning. Please tap \'Scan\' to scan for SensorTags.</string>
     
     <!-- Options menu -->

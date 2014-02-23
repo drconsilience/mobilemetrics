@@ -307,11 +307,11 @@ public class DeviceActivity extends ViewPagerActivity {
 
     // Characteristics descriptor readout done
     if (mServicesRdy) {
-      //setStatus("Service discovery complete");
+      setStatus("Service discovery complete");
       enableSensors(true);
       enableNotifications(true);
     } else {
-      //setError("Failed to read services");
+      setError("Failed to read services");
     }
   }
 

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TableLayout
+        android:id="@+id/services_browser_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:shrinkColumns="*"
+        android:stretchColumns="*" >
+
+        <TableRow style="@style/ServiceHeaderRow" >
+
+            <TextView
+                style="@style/ServiceHeaderItem"
+                android:text="@string/keys" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/keyPanel"
+            style="@style/ServiceRow" >
+
+            <TextView android:drawableLeft="@drawable/sensortag_simplekeys" />
+
+            <ImageView
+                android:id="@+id/buttons"
+                android:layout_height="wrap_content"
+                android:layout_span="2"
+                android:contentDescription="@string/image"
+                android:src="@drawable/buttonsoffoff" />
+
+            <TextView android:layout_span="1" />
+        </TableRow>
+
+        <TableRow style="@style/ServiceHeaderRow" >
+
+            <TextView
+                style="@style/ServiceHeaderItem"
+                android:text="@string/acc" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/accPanel"
+            style="@style/ServiceRow" >
+
+            <TextView android:drawableLeft="@drawable/accelerometer" />
+
+            <TextView
+                style="@style/ServiceItem"
+                android:text="@string/xyz3" />
+
+            <TextView
+                android:id="@+id/accelerometerTxt"
+                style="@style/ServiceItemValue"
+                android:text="@string/empty3" />
+
+            <TextView
+                style="@style/ServiceItem"
+                android:text="@string/unitG3" />
+        </TableRow>
+        
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.10"
+        android:orientation="horizontal" >
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="0dip"
+            android:orientation="vertical"
+            android:layout_weight="1" >
+
+            <TextView
+                android:id="@+id/xcoor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="X Coordinate: "
+                android:textColor="#900"
+                android:textSize="20dp" />
+
+            <TextView
+                android:id="@+id/ycoor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Y Coordinate: "
+                android:textColor="#090"
+                android:textSize="20dp" />
+
+            <TextView
+                android:id="@+id/zcoor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Z Coordinate: "
+                android:textColor="#009"
+                android:textSize="20dp" />
+            
+            <TextView
+                android:id="@+id/dt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="dt: "
+                android:textColor="#000"
+                android:textSize="20dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="150dp"
+            android:layout_height="100dp"
+            android:text="Button" />
+    
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/subLayout"
+        android:layout_height="150dip"
+        android:layout_width="match_parent"
+        android:orientation="vertical" >
+        
+    </LinearLayout>
+        <TableRow
+            android:id="@+id/statusPanel"
+            style="@style/ServiceRow" >
+
+            <TextView
+                android:id="@+id/status"
+                style="@style/statusStyle"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_span="4"
+                android:gravity="center"
+                android:textSize="12sp" />
+        </TableRow>
+        
+    </TableLayout>
+
+</ScrollView>

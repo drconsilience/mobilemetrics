@@ -24,7 +24,7 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/tible"
+        android:icon="@drawable/app_icon_2"
         android:label="@string/app_name" 
         android:theme="@android:style/Theme.Holo.Light">
         <service
@@ -36,12 +36,34 @@
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.MAINACTIVITY" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.mobilemetric.main.Splash"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            </activity>
+         <activity
+            android:name="com.mobilemetric.main.DataChoose"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.DATACHOOSE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        	</activity>
+       	<activity
+            android:name="com.mobilemetric.main.History"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.HISTORY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        	</activity>
         <activity
             android:name="DeviceActivity"
             android:parentActivityName="MainActivity"

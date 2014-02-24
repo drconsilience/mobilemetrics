@@ -340,6 +340,15 @@ public class DeviceActivity extends ViewPagerActivity {
 			}
 			
   		BluetoothGattService serv = mBtGatt.getService(servUuid);
+  		
+  	// Accelerometer calibration
+        if (confUuid.equals(SensorTag.UUID_ACC_CONF) && enable) {
+            byte transmitPeriod = 10; // in tens of milliseconds
+            BluetoothGattCharacteristic characPeriod = serv.getCharacteristic(SensorTag.UUID_ACC_PERI);
+            mBtLeService.writeCharacteristic(characPeriod, transmitPeriod);
+            mBtLeService.waitIdle(GATT_TIMEOUT);
+        }
+  		
   		BluetoothGattCharacteristic charac = serv.getCharacteristic(confUuid);
   		byte value =  enable ? sensor.getEnableSensorCode() : TagSensor.DISABLE_SENSOR_CODE;
   		mBtLeService.writeCharacteristic(charac, value);

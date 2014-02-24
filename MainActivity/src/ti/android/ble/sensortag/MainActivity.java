@@ -36,6 +36,7 @@ package ti.android.ble.sensortag;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import ti.android.ble.common.BleDeviceInfo;
 import ti.android.ble.common.BluetoothLeService;
 import ti.android.ble.common.HelpView;
@@ -261,6 +262,7 @@ public class MainActivity extends ViewPagerActivity {
         break;
       }
     }
+    
   }
 
   private void startScan() {
@@ -502,18 +504,6 @@ public class MainActivity extends ViewPagerActivity {
   		} else if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
   			// GATT connect
   			int status = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
-  			/* LOOK HERE
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 * 
-  			 */
   			if (status == BluetoothGatt.GATT_SUCCESS) {
   				setBusy(false);
   				startDeviceActivity();

@@ -38,8 +38,9 @@ import static ti.android.ble.sensortag.SensorTag.*;
 import static ti.android.ble.sensortag.R.drawable.*;
 
 import java.text.DecimalFormat;
-import ti.android.util.Point3D;
 
+import ti.android.util.Point3D;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;

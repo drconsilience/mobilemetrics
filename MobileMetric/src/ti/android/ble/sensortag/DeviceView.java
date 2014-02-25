@@ -33,13 +33,7 @@
 
  **************************************************************************************************/
 package ti.android.ble.sensortag;
-
-import static ti.android.ble.sensortag.R.drawable.buttonsoffoff;
-import static ti.android.ble.sensortag.R.drawable.buttonsoffon;
-import static ti.android.ble.sensortag.R.drawable.buttonsonoff;
-import static ti.android.ble.sensortag.R.drawable.buttonsonon;
 import static ti.android.ble.sensortag.SensorTag.UUID_ACC_DATA;
-import static ti.android.ble.sensortag.SensorTag.UUID_KEY_DATA;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -93,16 +87,15 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 	// Sensor table; the iD corresponds to row number
 	private static final int ID_OFFSET = 0;
-	private static final int ID_KEY = 0;
-	private static final int ID_ACC = 1;
+	private static final int ID_ACC = 0;
 
 	public static DeviceView mInstance = null;
 
 	// GUI
 	private TableLayout table;
 	private TextView mAccValue;
-	private ImageView mButton;
 	private TextView mStatus;
+	private TextView mCalcTest;
 
 	// House-keeping
 	private DecimalFormat decimal = new DecimalFormat("+0.00;-0.00");
@@ -122,9 +115,8 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 		// UI widgets
 		mAccValue = (TextView) view.findViewById(R.id.accelerometerTxt);
-		mButton = (ImageView) view.findViewById(R.id.buttons);
 		mStatus = (TextView) view.findViewById(R.id.status);
-
+		mCalcTest = (TextView) view.findViewById(R.id.calctest);
 		xCoor=(TextView)view.findViewById(R.id.xcoor); // create X axis object
 		yCoor=(TextView)view.findViewById(R.id.ycoor); // create Y axis object
 		zCoor=(TextView)view.findViewById(R.id.zcoor); // create Z axis object
@@ -213,36 +205,13 @@ public class DeviceView extends Fragment implements SensorEventListener{
 			v = TagSensor.ACCELEROMETER.convert(rawValue);
 			msg = decimal.format(v.x) + "\n" + decimal.format(v.y) + "\n" + decimal.format(v.z) + "\n";
 			mAccValue.setText(msg);
+			//Implement algorithm here!!!!!!!
+			mCalcTest.setText("|Accel.|:  "+ Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z));
 		} 
 
-		if (uuidStr.equals(UUID_KEY_DATA.toString())) {
-			SimpleKeysStatus s;
-			final int img;
-			s = TagSensor.SIMPLE_KEYS.convertKeys(rawValue);
-
-			switch (s) {
-			case OFF_OFF:
-				img = buttonsoffoff;
-				break;
-			case OFF_ON:
-				img = buttonsoffon;
-				break;
-			case ON_OFF:
-				img = buttonsonoff;
-				break;
-			case ON_ON:
-				img = buttonsonon;
-				break;
-			default:
-				throw new UnsupportedOperationException();
-			}
-
-			mButton.setImageResource(img);
-		}
 	}
 
 	void updateVisibility() {
-		showItem(ID_KEY,mActivity.isEnabledByPrefs(TagSensor.SIMPLE_KEYS));
 		showItem(ID_ACC,mActivity.isEnabledByPrefs(TagSensor.ACCELEROMETER));
 	}
 

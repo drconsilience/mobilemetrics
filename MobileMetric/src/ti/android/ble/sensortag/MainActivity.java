@@ -395,6 +395,7 @@ public class MainActivity extends ViewPagerActivity {
       mScanView.setStatus(mNumDevs + " devices");
     else
       mScanView.setStatus("1 device");
+      onDeviceClick(0); //Autoconnect
   }
 
   private boolean deviceInfoExists(String address) {

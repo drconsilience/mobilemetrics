@@ -410,7 +410,7 @@ public class DeviceActivity extends ViewPagerActivity {
 
     switch (requestCode) {
     case PREF_ACT_REQ:
-    	mDeviceView.updateVisibility();
+    	//mDeviceView.updateVisibility();
     	Toast.makeText(this, "Applying preferences", Toast.LENGTH_SHORT).show();
       if (!mIsReceiving) {
       	mIsReceiving = true;

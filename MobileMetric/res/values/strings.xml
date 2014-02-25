@@ -32,14 +32,7 @@
     <string name="image">Image</string>
     
     <!-- Sensor names-->
-    <string name="keys">Keys</string>
     <string name="acc">Accelerometer</string>
-    <string name="mag">Magnetometer</string>
-    <string name="gyro">Gyroscope</string>
-    <string name="hum">Humidity</string>
-    <string name="bar">Barometer</string>
-    <string name="tAmb">Ambience Temperature</string>
-    <string name="tObj">Object Temperature</string>
     
     <!-- Sensor misc. -->
     <string name="xyz3">x:\ny:\nz:\n</string>

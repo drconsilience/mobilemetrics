@@ -4,35 +4,12 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TableLayout
+   <TableLayout
         android:id="@+id/services_browser_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:shrinkColumns="*"
         android:stretchColumns="*" >
-
-        <TableRow style="@style/ServiceHeaderRow" >
-
-            <TextView
-                style="@style/ServiceHeaderItem"
-                android:text="@string/keys" />
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/keyPanel"
-            style="@style/ServiceRow" >
-
-            <TextView android:drawableLeft="@drawable/sensortag_simplekeys" />
-
-            <ImageView
-                android:id="@+id/buttons"
-                android:layout_height="wrap_content"
-                android:layout_span="2"
-                android:contentDescription="@string/image"
-                android:src="@drawable/buttonsoffoff" />
-
-            <TextView android:layout_span="1" />
-        </TableRow>
 
         <TableRow style="@style/ServiceHeaderRow" >
 
@@ -45,8 +22,6 @@
             android:id="@+id/accPanel"
             style="@style/ServiceRow" >
 
-            <TextView android:drawableLeft="@drawable/accelerometer" />
-
             <TextView
                 style="@style/ServiceItem"
                 android:text="@string/xyz3" />
@@ -56,8 +31,7 @@
                 style="@style/ServiceItemValue"
                 android:text="@string/empty3" />
 
-            <TextView
-                style="@style/ServiceItem"
+            <TextView                style="@style/ServiceItem"
                 android:text="@string/unitG3" />
         </TableRow>
         
@@ -102,6 +76,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="dt: "
+                android:textColor="#000"
+                android:textSize="20dp" />
+            
+             <TextView
+                android:id="@+id/calctest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Absolute Value: "
                 android:textColor="#000"
                 android:textSize="20dp" />
         </LinearLayout>

@@ -38,7 +38,7 @@
     <string name="xyz3">x:\ny:\nz:\n</string>
     <string name="empty3">*\n*\n*\n</string>
     <string name="unitDegSec3">deg/s\ndeg/s\ndeg/s\n</string>
-    <string name="unitG3">g\ng\ng\n</string>
+    <string name="unitG3">m/s*s\nm/s*s\nm/s*s\n</string>
     <string name="unitT3">uT\nuT\nuT\n</string>
     
     <string name="empty1">*\n</string>

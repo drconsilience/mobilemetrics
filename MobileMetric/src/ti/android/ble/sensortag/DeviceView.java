@@ -64,6 +64,7 @@ import com.jjoe64.graphview.GraphView.LegendAlign;
 import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
+
 import android.view.View.OnClickListener;
 
 // Fragment for Device View
@@ -77,9 +78,15 @@ public class DeviceView extends Fragment implements SensorEventListener{
 	ArrayList<Float> data_x = new ArrayList<Float>(); // declare data array lists
 	ArrayList<Float> data_y = new ArrayList<Float>();
 	ArrayList<Float> data_z = new ArrayList<Float>();
-	ArrayList<Double> data_x_s = new ArrayList<Double>();
-	ArrayList<Double> data_y_s = new ArrayList<Double>();
-	ArrayList<Double> data_z_s = new ArrayList<Double>();
+	ArrayList<Double> accx = new ArrayList<Double>();
+	ArrayList<Double> accy = new ArrayList<Double>();
+	ArrayList<Double> accz = new ArrayList<Double>();
+	ArrayList<Double> dvx = new ArrayList<Double>();
+	ArrayList<Double> dvy = new ArrayList<Double>();
+	ArrayList<Double> dvz = new ArrayList<Double>();
+	ArrayList<Double> velx = new ArrayList<Double>();
+	ArrayList<Double> vely = new ArrayList<Double>();
+	ArrayList<Double> velz = new ArrayList<Double>();
 	GraphViewSeries plotx; // declare GraphView objects
 	GraphViewSeries ploty;
 	GraphViewSeries plotz;
@@ -222,21 +229,83 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 		if (uuidStr.equals(UUID_ACC_DATA.toString())) {
 			v = TagSensor.ACCELEROMETER.convert(rawValue);
-			msg = decimal.format(v.x) + "\n" + decimal.format(v.y) + "\n" + decimal.format(v.z) + "\n";
+			msg = decimal.format(v.x*9.81) + "\n" + decimal.format(v.y*9.81) + "\n" + decimal.format(v.z*9.81) + "\n";
 			mAccValue.setText(msg);
+			double avgx;
+			double avgy;
+			double avgz;
+			double avgdvx;
+			double avgdvy;
+			double avgdvz;
+			int p=60;
+			double sumvelx=0;
+			double sumvely=0;
+			double sumvelz=0;
+			int vertaxis;
+			int count;
+			
 			//Implement algorithm here!!!!!!!
-			mCalcTest.setText("|Accel.|:  "+ Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z));
-			if(data_x_s.size() >= 40){
-				data_x_s.add(v.x); // add new x,y,z data
-				data_y_s.add(v.y);
-				data_z_s.add(v.z);
-				data_x_s.remove(0); // remove oldest x,y,z data
-				data_y_s.remove(0);
-				data_z_s.remove(0);
+			if(dvx.size() >= p){
+				mCalcTest.setText(Double.toString(velx.get(p-1)));
+				
+				dvx.add(v.x*0.01*9.81);
+				dvy.add(v.y*0.01*9.81);
+				dvz.add(v.z*0.01*9.81);
+				dvx.remove(0);
+				dvy.remove(0);
+				dvz.remove(0);
+				
+				
+				
+				velx.add(velx.get(p-2)+dvx.get(p-1));
+				vely.add(vely.get(p-2)+dvx.get(p-1));
+				velz.add(velz.get(p-2)+dvx.get(p-1));
+				
+				sumvelx=sumvelx+velx.get(p-1)-velx.get(0);
+				sumvely=sumvely+vely.get(p-1)-vely.get(0);
+				sumvelz=sumvelz+velz.get(p-1)-vely.get(0);
+				
+				avgx=sumvelx/p;
+				avgy=sumvely/p;
+				avgz=sumvelz/p;
+				
+				velx.remove(0);
+				vely.remove(0);
+				velz.remove(0);
+				
+				if ((Math.abs(avgx)>Math.abs(avgy))){
+					if (Math.abs(avgx)>Math.abs(avgz)){
+						vertaxis=1;
+					}else{
+						vertaxis=3;
+					}
+				}else if(Math.abs(avgy)>Math.abs(avgz)){
+					vertaxis=2;
+				}else{
+					vertaxis=3;
+				};
+				
+				
+				
 			} else {
-				data_x_s.add(v.x);
-				data_y_s.add(v.y);
-				data_z_s.add(v.z);
+				
+				dvx.add(v.x*0.01*9.81);
+				dvy.add(v.y*0.01*9.81);
+				dvz.add(v.z*0.01*9.81);
+				
+				int size = dvx.size();
+				if (size>=2){
+					velx.add(velx.get(size-2)+dvx.get(size-1));
+					vely.add(vely.get(size-2)+dvx.get(size-1));
+					velz.add(velz.get(size-2)+dvx.get(size-1));
+				
+					sumvelx+=velx.get(size-1);
+					sumvely+=vely.get(size-1);
+					sumvelz+=velz.get(size-1);
+				} else if (size<2)
+					velx.add((double)0);
+					vely.add((double)0);
+					velz.add((double)0);
 			};
 			
 		}

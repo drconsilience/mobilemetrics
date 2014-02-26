@@ -54,7 +54,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -74,9 +73,13 @@ public class DeviceView extends Fragment implements SensorEventListener{
 	TextView yCoor; // declare Y axis object
 	TextView zCoor; // declare Z axis object
 	TextView dtime;
+	Button viewdata;
 	ArrayList<Float> data_x = new ArrayList<Float>(); // declare data array lists
 	ArrayList<Float> data_y = new ArrayList<Float>();
 	ArrayList<Float> data_z = new ArrayList<Float>();
+	ArrayList<Double> data_x_s = new ArrayList<Double>();
+	ArrayList<Double> data_y_s = new ArrayList<Double>();
+	ArrayList<Double> data_z_s = new ArrayList<Double>();
 	GraphViewSeries plotx; // declare GraphView objects
 	GraphViewSeries ploty;
 	GraphViewSeries plotz;
@@ -93,6 +96,7 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 	// GUI
 	private TableLayout table;
+	private TableLayout dtable;
 	private TextView mAccValue;
 	private TextView mStatus;
 	private TextView mCalcTest;
@@ -121,6 +125,8 @@ public class DeviceView extends Fragment implements SensorEventListener{
 		yCoor=(TextView)view.findViewById(R.id.ycoor); // create Y axis object
 		zCoor=(TextView)view.findViewById(R.id.zcoor); // create Z axis object
 		dtime=(TextView)view.findViewById(R.id.dt);
+		dtable=(TableLayout)view.findViewById(R.id.datatable);
+		dtable.setVisibility(View.GONE);
 
 		sensorManager=(SensorManager)getActivity().getSystemService(Context.SENSOR_SERVICE);
 		// add listener. The listener will be HelloAndroid (this) class
@@ -168,6 +174,19 @@ public class DeviceView extends Fragment implements SensorEventListener{
 		graphView.setShowLegend(true);
 		graphView.setLegendAlign(LegendAlign.BOTTOM);
 		
+		final Button viewdata = (Button)view.findViewById(R.id.dvbutton);
+		viewdata.setOnClickListener(new OnClickListener() {
+			public void onClick(View bview){
+				if(dtable.getVisibility()==View.GONE){
+					dtable.setVisibility(View.VISIBLE);
+					viewdata.setText("Hide Summary");
+				}else if(dtable.getVisibility()==View.VISIBLE){
+					dtable.setVisibility(View.GONE);
+					viewdata.setText("Show Summary");
+				}
+			};
+		});
+		
 		Button btn1 = (Button)view.findViewById(R.id.button1);
 		btn1.setOnClickListener(new OnClickListener() {
 			public void onClick(View bview){
@@ -207,7 +226,20 @@ public class DeviceView extends Fragment implements SensorEventListener{
 			mAccValue.setText(msg);
 			//Implement algorithm here!!!!!!!
 			mCalcTest.setText("|Accel.|:  "+ Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z));
-		} 
+			if(data_x_s.size() >= 40){
+				data_x_s.add(v.x); // add new x,y,z data
+				data_y_s.add(v.y);
+				data_z_s.add(v.z);
+				data_x_s.remove(0); // remove oldest x,y,z data
+				data_y_s.remove(0);
+				data_z_s.remove(0);
+			} else {
+				data_x_s.add(v.x);
+				data_y_s.add(v.y);
+				data_z_s.add(v.z);
+			};
+			
+		}
 
 	}
 

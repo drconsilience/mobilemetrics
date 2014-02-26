@@ -30,11 +30,19 @@
                 android:id="@+id/accelerometerTxt"
                 style="@style/ServiceItemValue"
                 android:text="@string/empty3" />
+            
 
-            <TextView                style="@style/ServiceItem"
+
+            <TextView 
+                style="@style/ServiceItem"
                 android:text="@string/unitG3" />
         </TableRow>
         
+        <Button
+         android:id="@+id/dvbutton"
+         android:layout_width="150dp"
+         android:layout_height="100dp"
+         android:text="Show Summary"/>
         <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:text="X Coordinate: "
                 android:textColor="#900"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/ycoor"
@@ -61,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:text="Y Coordinate: "
                 android:textColor="#090"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/zcoor"
@@ -69,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:text="Z Coordinate: "
                 android:textColor="#009"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
             
             <TextView
                 android:id="@+id/dt"
@@ -77,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:text="dt: "
                 android:textColor="#000"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
             
              <TextView
                 android:id="@+id/calctest"
@@ -85,7 +93,24 @@
                 android:layout_height="wrap_content"
                 android:text="Absolute Value: "
                 android:textColor="#000"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
+             
+             <TableLayout
+                android:id="@+id/datatable"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:shrinkColumns="*"
+        		android:stretchColumns="*" >
+        		
+                <TableRow 
+                    style="@style/ServiceHeaderRow" 
+                    android:id="@+id/tablerow">
+
+            		<TextView
+               			style="@style/ServiceHeaderItem"
+                		android:text="Summary Data Could Go Here" />
+        		</TableRow>
+        		</TableLayout>
         </LinearLayout>
 
         <Button

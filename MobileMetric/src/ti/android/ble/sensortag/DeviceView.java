@@ -337,7 +337,7 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 			if(accx.size() >= sensorpoints){
 				//mCalcTest.setText("Filtered x acc= " +decimal.format(accx.get(sensorpoints-1))+"\n"+ "Filtered y acc= " +decimal.format(accy.get(sensorpoints-1))+"\n"+"Filtered z acc="+decimal.format(accz.get(sensorpoints-1)));
-				mCalcTest.setText(path);
+				mCalcTest.setText(state);
 				//for (int n=coefs.length;n>1;n--){
 				//sumx+=filtx[coefs.length-n]* coefs[n-1];
 				//filtx[coefs.length-n]=filtx[coefs.length-n+1];

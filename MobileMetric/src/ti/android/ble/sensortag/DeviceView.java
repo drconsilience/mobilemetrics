@@ -374,7 +374,7 @@ public class DeviceView extends Fragment implements SensorEventListener{
 				plotxs.resetData(newdataxs);
 				plotys.resetData(newdatays);
 				plotzs.resetData(newdatazs);
-				if(Math.sqrt(accx.get(sensorpoints-1)*accx.get(sensorpoints-1)+accz.get(sensorpoints-1)*accz.get(sensorpoints-1))>8){
+				if(Math.sqrt(accx.get(sensorpoints-1)*accx.get(sensorpoints-1)+accz.get(sensorpoints-1)*accz.get(sensorpoints-1))>5){
 					// Vibrate for 50 milliseconds
 					tstep2=SystemClock.uptimeMillis();
 					if(tstep2-tstep1>300){	

@@ -35,18 +35,25 @@
 package ti.android.ble.sensortag;
 import static ti.android.ble.sensortag.SensorTag.UUID_ACC_DATA;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 
 import ti.android.util.Point3D;
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -81,17 +88,22 @@ public class DeviceView extends Fragment implements SensorEventListener{
 	ArrayList<Double> accx = new ArrayList<Double>();
 	ArrayList<Double> accy = new ArrayList<Double>();
 	ArrayList<Double> accz = new ArrayList<Double>();
-	ArrayList<Double> dvx = new ArrayList<Double>();
-	ArrayList<Double> dvy = new ArrayList<Double>();
-	ArrayList<Double> dvz = new ArrayList<Double>();
-	ArrayList<Double> velx = new ArrayList<Double>();
-	ArrayList<Double> vely = new ArrayList<Double>();
-	ArrayList<Double> velz = new ArrayList<Double>();
-	GraphViewSeries plotx; // declare GraphView objects
+	double[] filtx = new double[11];
+	double[] filty = new double[11];
+	double[] filtz = new double[11];
+	int sensorpoints=100;
+
+	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
 	GraphViewSeries plotz;
 	GraphViewData[] data;
 	GraphView graphView;
+
+	GraphViewSeries plotxs; // declare GraphView objects for SensorTag
+	GraphViewSeries plotys;
+	GraphViewSeries plotzs;
+	GraphViewData[] datas;
+	GraphView graphViews;
 
 	private static final String TAG = "DeviceView";
 
@@ -111,13 +123,25 @@ public class DeviceView extends Fragment implements SensorEventListener{
 	// House-keeping
 	private DecimalFormat decimal = new DecimalFormat("+0.00;-0.00");
 	private DeviceActivity mActivity;
+	public MediaPlayer beep;
+	long t1;
+	long t2;
+	long dt;
+	long tstep1;
+	long tstep2;
+	int state = 0;
+	FileOutputStream outputStream;
+	File newFile;
+	String path;
+	String nam;
+	File dir;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Log.i(TAG, "onCreateView");
 		mInstance = this;
 		mActivity = (DeviceActivity) getActivity();
-
+		beep=MediaPlayer.create(getActivity(), R.raw.beep);
 		// The last two arguments ensure LayoutParams are inflated properly.
 		View view = inflater.inflate(R.layout.services_browser, container, false);
 
@@ -156,10 +180,18 @@ public class DeviceView extends Fragment implements SensorEventListener{
 				new GraphViewData(0,0),
 				new GraphViewData(0,0)
 		};
+		datas = new GraphViewData[sensorpoints];
+		for(int m=0;m<sensorpoints;m++){
+			datas[m]=new GraphViewData(0,0);
+		};
 
 		plotx = new GraphViewSeries("X", new GraphViewSeriesStyle(Color.RED,3), data); // create GraphViewSeries
 		ploty = new GraphViewSeries("Y", new GraphViewSeriesStyle(Color.GREEN,3), data);
 		plotz = new GraphViewSeries("Z", new GraphViewSeriesStyle(Color.BLUE,3), data);
+
+		plotxs = new GraphViewSeries("X", new GraphViewSeriesStyle(Color.RED,3), data); // create GraphViewSeries for SensorTag
+		plotys = new GraphViewSeries("Y", new GraphViewSeriesStyle(Color.GREEN,3), data);
+		plotzs = new GraphViewSeries("Z", new GraphViewSeriesStyle(Color.BLUE,3), data);
 
 		// Add series to LineGraphView
 		graphView = new LineGraphView(
@@ -169,6 +201,15 @@ public class DeviceView extends Fragment implements SensorEventListener{
 		graphView.addSeries(plotx); // data  
 		graphView.addSeries(ploty);
 		graphView.addSeries(plotz);
+
+		//Repeat for sensortag
+		graphViews = new LineGraphView(
+				getActivity(), // context  
+				"Plots" // heading  
+				);
+		graphViews.addSeries(plotxs); // data  
+		graphViews.addSeries(plotys);
+		graphViews.addSeries(plotzs);
 
 		// Format the view
 		LinearLayout layout = (LinearLayout) view.findViewById(R.id.subLayout);  
@@ -180,7 +221,17 @@ public class DeviceView extends Fragment implements SensorEventListener{
 		graphView.getGraphViewStyle().setGridColor(Color.BLACK);
 		graphView.setShowLegend(true);
 		graphView.setLegendAlign(LegendAlign.BOTTOM);
-		
+
+		LinearLayout layouts = (LinearLayout) view.findViewById(R.id.subLayoutS);  
+		layouts.addView(graphViews);
+		graphViews.setManualYAxisBounds(15.0,-15.0);
+		graphViews.getGraphViewStyle().setNumHorizontalLabels(10);
+		graphViews.getGraphViewStyle().setVerticalLabelsColor(Color.BLACK);
+		graphViews.getGraphViewStyle().setHorizontalLabelsColor(Color.BLACK);
+		graphViews.getGraphViewStyle().setGridColor(Color.BLACK);
+		graphViews.setShowLegend(true);
+		graphViews.setLegendAlign(LegendAlign.BOTTOM);
+
 		final Button viewdata = (Button)view.findViewById(R.id.dvbutton);
 		viewdata.setOnClickListener(new OnClickListener() {
 			public void onClick(View bview){
@@ -193,18 +244,40 @@ public class DeviceView extends Fragment implements SensorEventListener{
 				}
 			};
 		});
-		
+
 		Button btn1 = (Button)view.findViewById(R.id.button1);
 		btn1.setOnClickListener(new OnClickListener() {
-			public void onClick(View bview){
+			public void onClick(View b1view){
 				Random num = new Random(); // create Random object
-				bview.setBackgroundColor(num.nextInt()); // set button background color to next random integer
+				b1view.setBackgroundColor(num.nextInt()); // set button background color to next random integer
 				Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
 				// Vibrate for 50 milliseconds
+				beep.start();
 				v.vibrate(50); // vibrate for 50 ms
+
 			}
 		});
-		
+
+		Button btn2 = (Button)view.findViewById(R.id.button2);
+		btn2.setOnClickListener(new OnClickListener() {
+			public void onClick(View b2view){
+				if(state == 0){
+					state = 1;
+					b2view.setBackgroundColor(1);
+				}
+				else {
+					state = 0;
+					b2view.setBackgroundColor(10);
+				}
+			}
+		});
+
+		Context thisContext = getActivity();
+		path = thisContext.getExternalFilesDir(null).getAbsolutePath();
+		dir = new File(path);
+		int n = dir.list().length+1;
+		nam = "/data" + n + ".txt";
+		newFile = new File(path + nam);
 
 		return view;
 	}
@@ -217,100 +290,131 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 	@Override
 	public void onPause() {
+		//beep.release();
+		//beep = null;
 		super.onPause();
 	}
 
 	/**
 	 * Handle changes in sensor values
 	 * */
+
+	double[] coefs =new double[] {.0079,-.0263,.0694,-.1715,.6219,.6219,-.1715,.0694,-.0263,.0079,-.0015};
+
+
 	public void onCharacteristicChanged(String uuidStr, byte[] rawValue) {
 		Point3D v;
 		String msg;
+		t2=SystemClock.uptimeMillis();
+		dt=t2-t1;
+		t1=t2;
 
 		if (uuidStr.equals(UUID_ACC_DATA.toString())) {
 			v = TagSensor.ACCELEROMETER.convert(rawValue);
 			msg = decimal.format(v.x*9.81) + "\n" + decimal.format(v.y*9.81) + "\n" + decimal.format(v.z*9.81) + "\n";
 			mAccValue.setText(msg);
-			double avgx;
-			double avgy;
-			double avgz;
-			double avgdvx;
-			double avgdvy;
-			double avgdvz;
-			int p=60;
-			double sumvelx=0;
-			double sumvely=0;
-			double sumvelz=0;
-			int vertaxis;
-			int count;
-			
-			//Implement algorithm here!!!!!!!
-			if(dvx.size() >= p){
-				mCalcTest.setText(Double.toString(velx.get(p-1)));
-				
-				dvx.add(v.x*0.01*9.81);
-				dvy.add(v.y*0.01*9.81);
-				dvz.add(v.z*0.01*9.81);
-				dvx.remove(0);
-				dvy.remove(0);
-				dvz.remove(0);
-				
-				
-				
-				velx.add(velx.get(p-2)+dvx.get(p-1));
-				vely.add(vely.get(p-2)+dvx.get(p-1));
-				velz.add(velz.get(p-2)+dvx.get(p-1));
-				
-				sumvelx=sumvelx+velx.get(p-1)-velx.get(0);
-				sumvely=sumvely+vely.get(p-1)-vely.get(0);
-				sumvelz=sumvelz+velz.get(p-1)-vely.get(0);
-				
-				avgx=sumvelx/p;
-				avgy=sumvely/p;
-				avgz=sumvelz/p;
-				
-				velx.remove(0);
-				vely.remove(0);
-				velz.remove(0);
-				
-				if ((Math.abs(avgx)>Math.abs(avgy))){
-					if (Math.abs(avgx)>Math.abs(avgz)){
-						vertaxis=1;
-					}else{
-						vertaxis=3;
-					}
-				}else if(Math.abs(avgy)>Math.abs(avgz)){
-					vertaxis=2;
-				}else{
-					vertaxis=3;
-				};
-				
-				
-				
-			} else {
-				
-				dvx.add(v.x*0.01*9.81);
-				dvy.add(v.y*0.01*9.81);
-				dvz.add(v.z*0.01*9.81);
-				
-				int size = dvx.size();
-				if (size>=2){
-					velx.add(velx.get(size-2)+dvx.get(size-1));
-					vely.add(vely.get(size-2)+dvx.get(size-1));
-					velz.add(velz.get(size-2)+dvx.get(size-1));
-				
-					sumvelx+=velx.get(size-1);
-					sumvely+=vely.get(size-1);
-					sumvelz+=velz.get(size-1);
-				} else if (size<2)
-					velx.add((double)0);
-					vely.add((double)0);
-					velz.add((double)0);
-			};
-			
-		}
+			double sumx=0;
+			double sumy=0;
+			double sumz=0;
+			Vibrator vibe = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
+			//Low pass, equiripple, 0{11}, Fs=10Hz, Fpass=3Hz, Fstop=5Hz
 
-	}
+			//Implement algorithm here!!!!!!!
+
+			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
+
+			if (state == 1){
+				try {
+					String str = x+"\t"+y+"\t"+z+"\t"+dt+"\n";
+					outputStream = new FileOutputStream(newFile,true);
+					outputStream.write(str.getBytes());
+					outputStream.close();
+				}
+				catch (final Exception ex) {
+					Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace();
+				}
+			}
+
+			if(accx.size() >= sensorpoints){
+				//mCalcTest.setText("Filtered x acc= " +decimal.format(accx.get(sensorpoints-1))+"\n"+ "Filtered y acc= " +decimal.format(accy.get(sensorpoints-1))+"\n"+"Filtered z acc="+decimal.format(accz.get(sensorpoints-1)));
+				mCalcTest.setText(path);
+				//for (int n=coefs.length;n>1;n--){
+				//sumx+=filtx[coefs.length-n]* coefs[n-1];
+				//filtx[coefs.length-n]=filtx[coefs.length-n+1];
+				//sumy+=filty[coefs.length-n]* coefs[n-1];
+				//filty[coefs.length-n]=filty[coefs.length-n+1];
+				//sumz+=filtz[coefs.length-n]* coefs[n-1];
+				//filtz[coefs.length-n]=filtz[coefs.length-n+1];
+				//}
+				//sumx+=filtx[coefs.length-1]*coefs[0];
+				//filtx[coefs.length-1]=v.x*9.81*coefs[coefs.length-1];
+				//accx.add(sumx+v.x*9.81*coefs[coefs.length-1]);
+				accx.add(v.x*9.81);
+				accx.remove(0);
+				//sumy+=filty[coefs.length-1]*coefs[0];
+				//filty[coefs.length-1]=v.y*9.81*coefs[coefs.length-1];
+				//accy.add(sumy+v.y*9.81*coefs[coefs.length-1]);
+				accy.add(v.y*9.81);
+				accy.remove(0);
+				//sumz+=filtz[coefs.length-1]*coefs[0];
+				//filtz[coefs.length-1]=v.z*9.81*coefs[coefs.length-1];
+				//accz.add(sumz+v.z*9.81*coefs[coefs.length-1]);
+				accz.add(v.z*9.81);
+				accz.remove(0);
+
+				// reset GraphViewData with newest values
+				GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
+				GraphViewData[] newdatays = new GraphViewData[sensorpoints];
+				GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
+				for(int m=0;m<sensorpoints;m++){
+					newdataxs[m]=new GraphViewData(m, Math.sqrt(accx.get(m)*accx.get(m)+accz.get(m)*accz.get(m)));
+					newdatays[m]=new GraphViewData(m, accy.get(m));
+					newdatazs[m]=new GraphViewData(m, accz.get(m));
+				}
+				plotxs.resetData(newdataxs);
+				plotys.resetData(newdatays);
+				plotzs.resetData(newdatazs);
+				if(Math.sqrt(accx.get(sensorpoints-1)*accx.get(sensorpoints-1)+accz.get(sensorpoints-1)*accz.get(sensorpoints-1))>8){
+					// Vibrate for 50 milliseconds
+					tstep2=SystemClock.uptimeMillis();
+					if(tstep2-tstep1>300){	
+						beep.start(); // vibrate for 50 ms
+						tstep1=tstep2;
+					}
+				}
+				//} else if (accx.size()<coefs.length){
+
+				//accx.add(v.x*9.81);
+				//filtx[accx.size()-1]=(accx.get(accx.size()-1));
+				//accy.add(v.y*9.81);
+				//filty[accy.size()-1]=(accy.get(accy.size()-1));
+				//accz.add(v.z*9.81);
+				//filtz[accz.size()-1]=(accz.get(accz.size()-1));
+			}else {
+				//for (int n=coefs.length;n>1;n--){
+				//sumx+=filtx[coefs.length-n]* coefs[n-1];
+				//filtx[coefs.length-n]=filtx[coefs.length-n+1];
+				//sumy+=filty[coefs.length-n]* coefs[n-1];
+				//filty[coefs.length-n]=filty[coefs.length-n+1];
+				//sumz+=filtz[coefs.length-n]* coefs[n-1];
+				//filtz[coefs.length-n]=filtz[coefs.length-n+1];
+				//}
+				//sumx+=filtx[coefs.length-1]*coefs[0];
+				//filtx[coefs.length-1]=v.x*9.81*coefs[coefs.length-1];
+				//accx.add(sumx+v.x*9.81*coefs[coefs.length-1]);
+				accx.add(v.x*9.81);
+				//sumy+=filty[coefs.length-1]*coefs[0];
+				//filty[coefs.length-1]=v.y*9.81*coefs[coefs.length-1];
+				//accy.add(sumy+v.y*9.81*coefs[coefs.length-1]);
+				accy.add(v.y*9.81);
+				//sumz+=filtz[coefs.length-1]*coefs[0];
+				//filtz[coefs.length-1]=v.z*9.81*coefs[coefs.length-1];
+				//accz.add(sumz+v.z*9.81*coefs[coefs.length-1]);
+				accz.add(v.z*9.81);
+			}
+		}
+	};
+
 
 	void updateVisibility() {
 		showItem(ID_ACC,mActivity.isEnabledByPrefs(TagSensor.ACCELEROMETER));
@@ -409,13 +513,6 @@ public class DeviceView extends Fragment implements SensorEventListener{
 		}
 	}
 
-	/*public void onClick(View bview){
-		Random num = new Random(); // create Random object
-		bview.setBackgroundColor(num.nextInt()); // set button background color to next random integer
-		Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
-		// Vibrate for 50 milliseconds
-		v.vibrate(50); // vibrate for 50 ms
-	}*/
 
 }
 

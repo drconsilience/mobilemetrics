@@ -88,7 +88,6 @@ public class DeviceActivity extends ViewPagerActivity {
   private List<TagSensor> mEnabledSensors = new ArrayList<TagSensor>();
   private BluetoothGattService mOadService = null;
   private BluetoothGattService mConnControlService = null;
-  private boolean mMagCalibrateRequest = true;
   private boolean mHeightCalibrateRequest = true;
   
   
@@ -391,14 +390,6 @@ public class DeviceActivity extends ViewPagerActivity {
 	 mBtLeService.waitIdle(GATT_TIMEOUT);
  }
 
-	void calibrateMagnetometer() {
-		Log.d(TAG,"calibrateMagnetometer");
-		MagnetometerCalibrationCoefficients.INSTANCE.val.x = 0.0;
-		MagnetometerCalibrationCoefficients.INSTANCE.val.y = 0.0;
-		MagnetometerCalibrationCoefficients.INSTANCE.val.z = 0.0;
-
-		mMagCalibrateRequest = true;
-	}
 	
 	void calibrateHeight() {
 		mHeightCalibrateRequest = true;		
@@ -474,16 +465,6 @@ public class DeviceActivity extends ViewPagerActivity {
 
 	private void onCharacteristicChanged(String uuidStr, byte[] value) {
 		if (mDeviceView != null) {
-			if (mMagCalibrateRequest) {
-				if (uuidStr.equals(SensorTag.UUID_MAG_DATA.toString())) {
-					Point3D v = TagSensor.MAGNETOMETER.convert(value);
-
-					MagnetometerCalibrationCoefficients.INSTANCE.val = v;
-					mMagCalibrateRequest = false;
-					Toast.makeText(this, "Magnetometer calibrated", Toast.LENGTH_SHORT)
-					    .show();
-				}
-			}
 
 			if (mHeightCalibrateRequest) {
 				if (uuidStr.equals(SensorTag.UUID_BAR_DATA.toString())) {

@@ -137,13 +137,13 @@ public enum TagSensor {
   MAGNETOMETER(UUID_MAG_SERV, UUID_MAG_DATA, UUID_MAG_CONF) {
     @Override
     public Point3D convert(final byte [] value) {
-      Point3D mcal = MagnetometerCalibrationCoefficients.INSTANCE.val;
+      //Point3D mcal = MagnetometerCalibrationCoefficients.INSTANCE.val;
       // Multiply x and y with -1 so that the values correspond with the image in the app
       float x = shortSignedAtOffset(value, 0) * (2000f / 65536f) * -1;
       float y = shortSignedAtOffset(value, 2) * (2000f / 65536f) * -1;
       float z = shortSignedAtOffset(value, 4) * (2000f / 65536f);
       
-			return new Point3D(x - mcal.x, y - mcal.y, z - mcal.z);
+			return new Point3D(x , y , z);
     }
   },
 

@@ -8,19 +8,19 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 
 public class Splash extends Activity{
-	MediaPlayer ourSound;
+	//MediaPlayer ourSound;
 	@Override
 	protected void onCreate(Bundle GoSplash) {
 		// TODO Auto-generated method stub
 		super.onCreate(GoSplash);
 		setContentView(R.layout.splash);
-		ourSound = MediaPlayer.create(Splash.this, R.raw.chime);
-		ourSound.start();
+		//ourSound = MediaPlayer.create(Splash.this, R.raw.beep);
+		//ourSound.start();
 		Thread timer = new Thread(){
 			public void run(){
 				try{
 					sleep(5000);
-					Intent openDataChoose = new Intent("android.intent.action.DATACHOOSE");
+					Intent openDataChoose = new Intent("android.intent.action.MAINACTIVITY");
 					startActivity(openDataChoose);
 				} catch (ActivityNotFoundException a){
 					a.printStackTrace();
@@ -39,7 +39,7 @@ public class Splash extends Activity{
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
-		ourSound.release();
+		//ourSound.release();
 		finish();
 	}
 	

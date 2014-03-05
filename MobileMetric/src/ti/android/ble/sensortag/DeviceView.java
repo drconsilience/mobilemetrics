@@ -131,6 +131,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	long tstep1;
 	long tstep2;
 	int state = 0;
+	int stepCount=0;
 	FileOutputStream outputStream;
 	File newFile;
 	String path;
@@ -145,7 +146,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		Log.i(TAG, "onCreateView");
 		mInstance = this;
 		mActivity = (DeviceActivity) getActivity();
-		beep=MediaPlayer.create(getActivity(), R.raw.chime);
+		beep=MediaPlayer.create(getActivity(), R.raw.beep);
 		// The last two arguments ensure LayoutParams are inflated properly.
 		View view = inflater.inflate(R.layout.services_browser, container, false);
 
@@ -162,6 +163,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		dtime=(TextView)view.findViewById(R.id.dt);
 		dtable=(TableLayout)view.findViewById(R.id.datatable);
 		dtable.setVisibility(View.GONE);
+		mCalcTest.setText("0 steps recorded");
 
 		sensorManager=(SensorManager)getActivity().getSystemService(Context.SENSOR_SERVICE);
 		// add listener. The listener will be HelloAndroid (this) class
@@ -300,7 +302,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 			if(accx.size() >= sensorpoints){
 				//mCalcTest.setText("Filtered x acc= " +decimal.format(accx.get(sensorpoints-1))+"\n"+ "Filtered y acc= " +decimal.format(accy.get(sensorpoints-1))+"\n"+"Filtered z acc="+decimal.format(accz.get(sensorpoints-1)));
-				mCalcTest.setText(path);
 				//for (int n=coefs.length;n>1;n--){
 				//sumx+=filtx[coefs.length-n]* coefs[n-1];
 				//filtx[coefs.length-n]=filtx[coefs.length-n+1];
@@ -343,6 +344,8 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 					if(tstep2-tstep1>300){	
 						beep.start(); // vibrate for 50 ms
 						tstep1=tstep2;
+						stepCount++;
+						mCalcTest.setText(stepCount+" steps recorded.");
 					}
 				}
 				//} else if (accx.size()<coefs.length){
@@ -374,9 +377,18 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				//filtz[coefs.length-1]=v.z*9.81*coefs[coefs.length-1];
 				//accz.add(sumz+v.z*9.81*coefs[coefs.length-1]);
 				accz.add(v.z*9.81);
+				if(Math.sqrt(accx.get(accx.size()-1)*accx.get(accx.size()-1)+accz.get(accx.size()-1)*accz.get(accx.size()-1))>5){
+					// Vibrate for 50 milliseconds
+					tstep2=SystemClock.uptimeMillis();
+					if(tstep2-tstep1>300){	
+						beep.start(); // vibrate for 50 ms
+						tstep1=tstep2;
+						stepCount++;
+						mCalcTest.setText(stepCount+" steps recorded.");
+					}
 			}
 		}
-	};
+	}};
 
 
 	void updateVisibility() {
@@ -480,7 +492,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				outputStream = new FileOutputStream(newFile,true);
 				outputStream.write(str.getBytes());
 				outputStream.close();
-				mCalcTest.setText("SuperFunsies");
 			}
 			catch (final Exception ex) {
 				Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace();
@@ -497,6 +508,9 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			// Vibrate for 50 milliseconds
 			beep.start();
 			vib.vibrate(50); // vibrate for 50 ms
+			stepCount=0;
+			mCalcTest.setText("0 steps recorded");
+			break;
 		case R.id.button2:
 			if(state == 0){
 				state = 1;
@@ -506,6 +520,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				state = 0;
 				v.setBackgroundColor(Color.RED);
 			}
+			break;
 		case R.id.dvbutton:
 			if(dtable.getVisibility()==View.GONE){
 				dtable.setVisibility(View.VISIBLE);
@@ -514,6 +529,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				dtable.setVisibility(View.GONE);
 				dataview.setText("Show Summary");
 			}
+			break;
 		}
 
 	}

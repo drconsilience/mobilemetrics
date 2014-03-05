@@ -92,7 +92,7 @@
                     android:id="@+id/calctest"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Absolute Value: "
+                    android:text=" "
                     android:textColor="#000"
                     android:textSize="20sp" />
 
@@ -118,7 +118,7 @@
                 android:id="@+id/button1"
                 android:layout_width="75dp"
                 android:layout_height="100dp"
-                android:text="Button" />
+                android:text="Reset Step Count" />
 
             <Button
                 android:id="@+id/button2"

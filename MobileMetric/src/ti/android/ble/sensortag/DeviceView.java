@@ -64,6 +64,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
@@ -75,7 +76,7 @@ import com.jjoe64.graphview.LineGraphView;
 import android.view.View.OnClickListener;
 
 // Fragment for Device View
-public class DeviceView extends Fragment implements SensorEventListener{
+public class DeviceView extends Fragment implements SensorEventListener,OnClickListener{
 	private SensorManager sensorManager;
 	TextView xCoor; // declare X axis object
 	TextView yCoor; // declare Y axis object
@@ -135,13 +136,16 @@ public class DeviceView extends Fragment implements SensorEventListener{
 	String path;
 	String nam;
 	File dir;
+	Button dataview;
+	Button btn1;
+	Button btn2;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Log.i(TAG, "onCreateView");
 		mInstance = this;
 		mActivity = (DeviceActivity) getActivity();
-		beep=MediaPlayer.create(getActivity(), R.raw.beep);
+		beep=MediaPlayer.create(getActivity(), R.raw.chime);
 		// The last two arguments ensure LayoutParams are inflated properly.
 		View view = inflater.inflate(R.layout.services_browser, container, false);
 
@@ -232,45 +236,14 @@ public class DeviceView extends Fragment implements SensorEventListener{
 		graphViews.setShowLegend(true);
 		graphViews.setLegendAlign(LegendAlign.BOTTOM);
 
-		final Button viewdata = (Button)view.findViewById(R.id.dvbutton);
-		viewdata.setOnClickListener(new OnClickListener() {
-			public void onClick(View bview){
-				if(dtable.getVisibility()==View.GONE){
-					dtable.setVisibility(View.VISIBLE);
-					viewdata.setText("Hide Summary");
-				}else if(dtable.getVisibility()==View.VISIBLE){
-					dtable.setVisibility(View.GONE);
-					viewdata.setText("Show Summary");
-				}
-			};
-		});
+		dataview = (Button)view.findViewById(R.id.dvbutton);
+		dataview.setOnClickListener(this);
 
-		Button btn1 = (Button)view.findViewById(R.id.button1);
-		btn1.setOnClickListener(new OnClickListener() {
-			public void onClick(View b1view){
-				Random num = new Random(); // create Random object
-				b1view.setBackgroundColor(num.nextInt()); // set button background color to next random integer
-				Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
-				// Vibrate for 50 milliseconds
-				beep.start();
-				v.vibrate(50); // vibrate for 50 ms
+		btn1 = (Button)view.findViewById(R.id.button1);
+		btn1.setOnClickListener(this);
 
-			}
-		});
-
-		Button btn2 = (Button)view.findViewById(R.id.button2);
-		btn2.setOnClickListener(new OnClickListener() {
-			public void onClick(View b2view){
-				if(state == 0){
-					state = 1;
-					b2view.setBackgroundColor(1);
-				}
-				else {
-					state = 0;
-					b2view.setBackgroundColor(10);
-				}
-			}
-		});
+		btn2 = (Button)view.findViewById(R.id.button2);
+		btn2.setOnClickListener(this);
 
 		Context thisContext = getActivity();
 		path = thisContext.getExternalFilesDir(null).getAbsolutePath();
@@ -323,21 +296,11 @@ public class DeviceView extends Fragment implements SensorEventListener{
 
 			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
 
-			if (state == 1){
-				try {
-					String str = x+"\t"+y+"\t"+z+"\t"+dt+"\n";
-					outputStream = new FileOutputStream(newFile,true);
-					outputStream.write(str.getBytes());
-					outputStream.close();
-				}
-				catch (final Exception ex) {
-					Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace();
-				}
-			}
+			
 
 			if(accx.size() >= sensorpoints){
 				//mCalcTest.setText("Filtered x acc= " +decimal.format(accx.get(sensorpoints-1))+"\n"+ "Filtered y acc= " +decimal.format(accy.get(sensorpoints-1))+"\n"+"Filtered z acc="+decimal.format(accz.get(sensorpoints-1)));
-				mCalcTest.setText(state);
+				mCalcTest.setText(path);
 				//for (int n=coefs.length;n>1;n--){
 				//sumx+=filtx[coefs.length-n]* coefs[n-1];
 				//filtx[coefs.length-n]=filtx[coefs.length-n+1];
@@ -511,8 +474,49 @@ public class DeviceView extends Fragment implements SensorEventListener{
 			data_y.add(y);
 			data_z.add(z);
 		}
+		if (state == 1){
+			try {
+				String str = x+"\t"+y+"\t"+z+"\t"+dt+"\n";
+				outputStream = new FileOutputStream(newFile,true);
+				outputStream.write(str.getBytes());
+				outputStream.close();
+				mCalcTest.setText("SuperFunsies");
+			}
+			catch (final Exception ex) {
+				Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace();
+			}
+		}
 	}
 
+	public void onClick(View v){
+		switch (v.getId()){
+		case R.id.button1:
+			Random num = new Random(); // create Random object
+			v.setBackgroundColor(num.nextInt()); // set button background color to next random integer
+			Vibrator vib = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
+			// Vibrate for 50 milliseconds
+			beep.start();
+			vib.vibrate(50); // vibrate for 50 ms
+		case R.id.button2:
+			if(state == 0){
+				state = 1;
+				v.setBackgroundColor(Color.GREEN);
+			}
+			else {
+				state = 0;
+				v.setBackgroundColor(Color.RED);
+			}
+		case R.id.dvbutton:
+			if(dtable.getVisibility()==View.GONE){
+				dtable.setVisibility(View.VISIBLE);
+				dataview.setText("Hide Summary");
+			}else if(dtable.getVisibility()==View.VISIBLE){
+				dtable.setVisibility(View.GONE);
+				dataview.setText("Show Summary");
+			}
+		}
+
+	}
 
 }
 

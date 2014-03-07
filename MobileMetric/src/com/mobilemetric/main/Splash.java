@@ -19,7 +19,7 @@ public class Splash extends Activity{
 		Thread timer = new Thread(){
 			public void run(){
 				try{
-					sleep(5000);
+					sleep(2500);
 					Intent openDataChoose = new Intent("android.intent.action.MAINACTIVITY");
 					startActivity(openDataChoose);
 				} catch (ActivityNotFoundException a){

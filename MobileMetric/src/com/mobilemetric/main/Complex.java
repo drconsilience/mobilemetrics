@@ -48,7 +48,7 @@ public class Complex {
     }
 
     // return abs/modulus/magnitude and angle/phase/argument
-    public double abs()   { return Math.hypot(re, im); }  // Math.sqrt(re*re + im*im)
+    public static double abs(Complex b)   { return Math.hypot(b.re, b.im); }  // Math.sqrt(re*re + im*im)
     public double phase() { return Math.atan2(im, re); }  // between -pi and pi
 
     // return a new Complex object whose value is (this + b)
@@ -148,7 +148,7 @@ public class Complex {
         System.out.println("a / b        = " + a.divides(b));
         System.out.println("(a / b) * b  = " + a.divides(b).times(b));
         System.out.println("conj(a)      = " + a.conjugate());
-        System.out.println("|a|          = " + a.abs());
+        //System.out.println("|a|          = " + a.abs());
         System.out.println("tan(a)       = " + a.tan());
     }
 

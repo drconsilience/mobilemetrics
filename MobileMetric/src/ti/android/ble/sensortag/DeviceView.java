@@ -72,7 +72,8 @@ import com.jjoe64.graphview.GraphView.LegendAlign;
 import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
-
+import com.mobilemetric.main.Complex;
+import com.mobilemetric.main.FFT;
 import android.view.View.OnClickListener;
 
 // Fragment for Device View
@@ -89,10 +90,14 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	ArrayList<Double> accx = new ArrayList<Double>();
 	ArrayList<Double> accy = new ArrayList<Double>();
 	ArrayList<Double> accz = new ArrayList<Double>();
-	double[] filtx = new double[11];
-	double[] filty = new double[11];
-	double[] filtz = new double[11];
-	int sensorpoints=100;
+	int sensorpoints=128;
+	//Complex[] compx = new Complex[sensorpoints];
+	Complex[] compy = new Complex[sensorpoints];
+	//Complex[] compz = new Complex[sensorpoints];
+	//Complex[] fftx = new Complex[sensorpoints];
+	Complex[] ffty = new Complex[sensorpoints];
+	//Complex[] fftz = new Complex[sensorpoints];
+	
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
@@ -297,47 +302,36 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			//Implement algorithm here!!!!!!!
 
 			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
-
-			
-
 			if(accx.size() >= sensorpoints){
-				//for (int n=coefs.length;n>1;n--){
-				//sumx+=filtx[coefs.length-n]* coefs[n-1];
-				//filtx[coefs.length-n]=filtx[coefs.length-n+1];
-				//sumy+=filty[coefs.length-n]* coefs[n-1];
-				//filty[coefs.length-n]=filty[coefs.length-n+1];
-				//sumz+=filtz[coefs.length-n]* coefs[n-1];
-				//filtz[coefs.length-n]=filtz[coefs.length-n+1];
-				//}
-				//sumx+=filtx[coefs.length-1]*coefs[0];
-				//filtx[coefs.length-1]=v.x*9.81*coefs[coefs.length-1];
-				//accx.add(sumx+v.x*9.81*coefs[coefs.length-1]);
-				accx.add(v.x*9.81);
+				accx.add(x);
 				accx.remove(0);
-				//sumy+=filty[coefs.length-1]*coefs[0];
-				//filty[coefs.length-1]=v.y*9.81*coefs[coefs.length-1];
-				//accy.add(sumy+v.y*9.81*coefs[coefs.length-1]);
-				accy.add(v.y*9.81);
+				accy.add(y);
 				accy.remove(0);
-				//sumz+=filtz[coefs.length-1]*coefs[0];
-				//filtz[coefs.length-1]=v.z*9.81*coefs[coefs.length-1];
-				//accz.add(sumz+v.z*9.81*coefs[coefs.length-1]);
-				accz.add(v.z*9.81);
+				accz.add(z);
 				accz.remove(0);
+				
+				for(int n=0;n<sensorpoints;n++){
+				compy[n]=(new Complex(accy.get(n),(double)0));
+				}
+				ffty=FFT.fft(compy);
 
 				// reset GraphViewData with newest values
-				GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
+				//GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
 				GraphViewData[] newdatays = new GraphViewData[sensorpoints];
-				GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
+				//GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
 				for(int m=0;m<sensorpoints;m++){
-					newdataxs[m]=new GraphViewData(m, Math.sqrt(accx.get(m)*accx.get(m)+accz.get(m)*accz.get(m)));
-					newdatays[m]=new GraphViewData(m, accy.get(m));
-					newdatazs[m]=new GraphViewData(m, accz.get(m));
+					//newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
+					newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
+					//newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
 				}
-				plotxs.resetData(newdataxs);
+				//plotxs.resetData(newdataxs);
 				plotys.resetData(newdatays);
-				plotzs.resetData(newdatazs);
-				if(Math.sqrt(accx.get(sensorpoints-1)*accx.get(sensorpoints-1)+accz.get(sensorpoints-1)*accz.get(sensorpoints-1))>5){
+				//plotzs.resetData(newdatazs);
+				
+				//FFT calcualtion
+				
+				
+				if(Math.sqrt(x*x+z*z)>5){
 					// Vibrate for 50 milliseconds
 					tstep2=SystemClock.uptimeMillis();
 					if(tstep2-tstep1>300){	
@@ -347,36 +341,11 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 						mCalcTest.setText(stepCount+" steps recorded.");
 					}
 				}
-				//} else if (accx.size()<coefs.length){
-
-				//accx.add(v.x*9.81);
-				//filtx[accx.size()-1]=(accx.get(accx.size()-1));
-				//accy.add(v.y*9.81);
-				//filty[accy.size()-1]=(accy.get(accy.size()-1));
-				//accz.add(v.z*9.81);
-				//filtz[accz.size()-1]=(accz.get(accz.size()-1));
 			}else {
-				//for (int n=coefs.length;n>1;n--){
-				//sumx+=filtx[coefs.length-n]* coefs[n-1];
-				//filtx[coefs.length-n]=filtx[coefs.length-n+1];
-				//sumy+=filty[coefs.length-n]* coefs[n-1];
-				//filty[coefs.length-n]=filty[coefs.length-n+1];
-				//sumz+=filtz[coefs.length-n]* coefs[n-1];
-				//filtz[coefs.length-n]=filtz[coefs.length-n+1];
-				//}
-				//sumx+=filtx[coefs.length-1]*coefs[0];
-				//filtx[coefs.length-1]=v.x*9.81*coefs[coefs.length-1];
-				//accx.add(sumx+v.x*9.81*coefs[coefs.length-1]);
-				accx.add(v.x*9.81);
-				//sumy+=filty[coefs.length-1]*coefs[0];
-				//filty[coefs.length-1]=v.y*9.81*coefs[coefs.length-1];
-				//accy.add(sumy+v.y*9.81*coefs[coefs.length-1]);
-				accy.add(v.y*9.81);
-				//sumz+=filtz[coefs.length-1]*coefs[0];
-				//filtz[coefs.length-1]=v.z*9.81*coefs[coefs.length-1];
-				//accz.add(sumz+v.z*9.81*coefs[coefs.length-1]);
-				accz.add(v.z*9.81);
-				if(Math.sqrt(accx.get(accx.size()-1)*accx.get(accx.size()-1)+accz.get(accx.size()-1)*accz.get(accx.size()-1))>5){
+				accx.add(x);
+				accy.add(y);
+				accz.add(z);
+				if(Math.sqrt(x*x+z*z)>5){
 					// Vibrate for 50 milliseconds
 					tstep2=SystemClock.uptimeMillis();
 					if(tstep2-tstep1>300){	

@@ -41,7 +41,6 @@ import java.util.UUID;
 
 import ti.android.ble.common.BluetoothLeService;
 import ti.android.ble.common.GattInfo;
-import ti.android.ble.common.HelpView;
 import ti.android.util.Point3D;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -109,7 +108,6 @@ public class DeviceActivity extends ViewPagerActivity {
     // GUI
     mDeviceView = new DeviceView();
     mSectionsPagerAdapter.addSection(mDeviceView, "Services");
-    mSectionsPagerAdapter.addSection(new HelpView("help_device.html", R.layout.fragment_help, R.id.webpage), "Help");
     PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
     // BLE

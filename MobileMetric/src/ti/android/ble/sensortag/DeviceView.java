@@ -90,13 +90,16 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	ArrayList<Double> accx = new ArrayList<Double>();
 	ArrayList<Double> accy = new ArrayList<Double>();
 	ArrayList<Double> accz = new ArrayList<Double>();
-	int sensorpoints=128;
-	//Complex[] compx = new Complex[sensorpoints];
+	int sensorpoints=256;
+	Complex[] compx = new Complex[sensorpoints];
 	Complex[] compy = new Complex[sensorpoints];
-	//Complex[] compz = new Complex[sensorpoints];
-	//Complex[] fftx = new Complex[sensorpoints];
+	Complex[] compz = new Complex[sensorpoints];
+	Complex[] fftx = new Complex[sensorpoints];
 	Complex[] ffty = new Complex[sensorpoints];
-	//Complex[] fftz = new Complex[sensorpoints];
+	Complex[] fftz = new Complex[sensorpoints];
+	double meanx=0;
+	double meany=0;
+	double meanz=0;
 	
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
@@ -178,6 +181,12 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 		// Notify activity that UI has been inflated
 		mActivity.onViewInflated(view);
+		
+		for(int n=0;n<sensorpoints;n++){
+			compx[n]=new Complex((double) 0,(double) 0);
+			compy[n]=new Complex((double) 0,(double) 0);
+			compz[n]=new Complex((double) 0,(double) 0);
+		}
 
 		data = new GraphViewData[] {
 				new GraphViewData(0,0),
@@ -235,7 +244,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 		LinearLayout layouts = (LinearLayout) view.findViewById(R.id.subLayoutS);  
 		layouts.addView(graphViews);
-		graphViews.setManualYAxisBounds(15.0,-15.0);
+		graphViews.setManualYAxisBounds(30,0);
 		graphViews.getGraphViewStyle().setNumHorizontalLabels(10);
 		graphViews.getGraphViewStyle().setVerticalLabelsColor(Color.BLACK);
 		graphViews.getGraphViewStyle().setHorizontalLabelsColor(Color.BLACK);
@@ -309,26 +318,37 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				accy.remove(0);
 				accz.add(z);
 				accz.remove(0);
+				meanx*=accx.size()-1;
+				meanx+=x;
+				meanx/=accx.size();
+				meany*=accy.size()-1;
+				meany+=y;
+				meany/=accy.size();
+				meanz*=accz.size()-1;
+				meanz+=z;
+				meanz/=accz.size();
 				
 				for(int n=0;n<sensorpoints;n++){
-				compy[n]=(new Complex(accy.get(n),(double)0));
+				compx[n]=(new Complex(accx.get(n)-meanx,(double)0));
+				compy[n]=(new Complex(accy.get(n)-meany,(double)0));
+				compz[n]=(new Complex(accz.get(n)-meanz,(double)0));
 				}
+				fftx=FFT.fft(compx);
 				ffty=FFT.fft(compy);
+				fftz=FFT.fft(compz);
 
 				// reset GraphViewData with newest values
-				//GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
+				GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
 				GraphViewData[] newdatays = new GraphViewData[sensorpoints];
-				//GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
+				GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
 				for(int m=0;m<sensorpoints;m++){
-					//newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
+					newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
 					newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
-					//newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
+					newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
 				}
-				//plotxs.resetData(newdataxs);
+				plotxs.resetData(newdataxs);
 				plotys.resetData(newdatays);
-				//plotzs.resetData(newdatazs);
-				
-				//FFT calcualtion
+				plotzs.resetData(newdatazs);
 				
 				
 				if(Math.sqrt(x*x+z*z)>5){
@@ -345,6 +365,38 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				accx.add(x);
 				accy.add(y);
 				accz.add(z);
+				meanx*=accx.size()-1;
+				meanx+=x;
+				meanx/=accx.size();
+				meany*=accy.size()-1;
+				meany+=y;
+				meany/=accy.size();
+				meanz*=accz.size()-1;
+				meanz+=z;
+				meanz/=accz.size();
+				
+				for(int n=0;n<accx.size();n++){
+					compx[n]=(new Complex(accx.get(n)-meanx,(double)0));
+					compy[n]=(new Complex(accy.get(n)-meany,(double)0));
+					compz[n]=(new Complex(accz.get(n)-meanz,(double)0));
+					}
+					fftx=FFT.fft(compx);
+					ffty=FFT.fft(compy);
+					fftz=FFT.fft(compz);
+
+					// reset GraphViewData with newest values
+					GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
+					GraphViewData[] newdatays = new GraphViewData[sensorpoints];
+					GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
+					for(int m=0;m<sensorpoints;m++){
+						newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
+						newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
+						newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
+					}
+					plotxs.resetData(newdataxs);
+					plotys.resetData(newdatays);
+					plotzs.resetData(newdatazs);
+				
 				if(Math.sqrt(x*x+z*z)>5){
 					// Vibrate for 50 milliseconds
 					tstep2=SystemClock.uptimeMillis();

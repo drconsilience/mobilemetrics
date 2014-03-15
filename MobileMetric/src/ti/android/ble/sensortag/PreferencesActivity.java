@@ -1,5 +1,5 @@
 /**************************************************************************************************
-  Filename:       PreferencesActivity.java
+ Filename:       PreferencesActivity.java
   Revised:        $Date: 2013-08-30 11:43:54 +0200 (fr, 30 aug 2013) $
   Revision:       $Revision: 27452 $
 

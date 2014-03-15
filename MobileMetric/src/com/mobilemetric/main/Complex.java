@@ -152,4 +152,20 @@ public class Complex {
         System.out.println("tan(a)       = " + a.tan());
     }
 
+	public static Complex[] subset(Complex[] m, int low, int high){
+		int length=high-low+1;
+		Complex[] subset = new Complex[length];
+		for(int i=low;i<high;i++){
+			subset[i-low]=m[i];
+		}
+		return subset;
+	}
+	
+	public static double mean(Complex[] m) {
+		double sum = 0;
+		for (int i = 0; i < m.length; i++) {
+			sum += Complex.abs(m[i]);
+		}
+		return sum / m.length;
+	}
 }

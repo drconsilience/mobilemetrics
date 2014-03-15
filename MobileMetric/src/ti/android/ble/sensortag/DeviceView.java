@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import ti.android.util.Point3D;
@@ -74,6 +75,7 @@ import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
 import com.mobilemetric.main.Complex;
 import com.mobilemetric.main.FFT;
+
 import android.view.View.OnClickListener;
 
 // Fragment for Device View
@@ -90,7 +92,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	ArrayList<Double> accx = new ArrayList<Double>();
 	ArrayList<Double> accy = new ArrayList<Double>();
 	ArrayList<Double> accz = new ArrayList<Double>();
-	int sensorpoints=256;
+	int sensorpoints=128;
 	Complex[] compx = new Complex[sensorpoints];
 	Complex[] compy = new Complex[sensorpoints];
 	Complex[] compz = new Complex[sensorpoints];
@@ -100,7 +102,11 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	double meanx=0;
 	double meany=0;
 	double meanz=0;
-	
+	double hzratio=sensorpoints/10;
+	int lowbandl=(int) Math.ceil(0.5*hzratio);
+	int lowbandh=(int) Math.floor(3*hzratio);
+	int highbandl=(int) Math.ceil(3*hzratio);
+	int highbandh=(int) Math.floor(5*hzratio);
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
@@ -148,6 +154,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	Button dataview;
 	Button btn1;
 	Button btn2;
+	String[] freqs;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -171,7 +178,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		dtime=(TextView)view.findViewById(R.id.dt);
 		dtable=(TableLayout)view.findViewById(R.id.datatable);
 		dtable.setVisibility(View.GONE);
-		mCalcTest.setText("0 steps recorded");
+		//mCalcTest.setText("0 steps recorded");
 
 		sensorManager=(SensorManager)getActivity().getSystemService(Context.SENSOR_SERVICE);
 		// add listener. The listener will be HelloAndroid (this) class
@@ -181,7 +188,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 		// Notify activity that UI has been inflated
 		mActivity.onViewInflated(view);
-		
+
 		for(int n=0;n<sensorpoints;n++){
 			compx[n]=new Complex((double) 0,(double) 0);
 			compy[n]=new Complex((double) 0,(double) 0);
@@ -205,6 +212,8 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			datas[m]=new GraphViewData(0,0);
 		};
 
+		String[] freqs=new String[] {"0",".5","1","1.5","2","2.5","3","3.5","4","4.5","5"};
+
 		plotx = new GraphViewSeries("X", new GraphViewSeriesStyle(Color.RED,3), data); // create GraphViewSeries
 		ploty = new GraphViewSeries("Y", new GraphViewSeriesStyle(Color.GREEN,3), data);
 		plotz = new GraphViewSeries("Z", new GraphViewSeriesStyle(Color.BLUE,3), data);
@@ -225,7 +234,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		//Repeat for sensortag
 		graphViews = new LineGraphView(
 				getActivity(), // context  
-				"Plots" // heading  
+				"Fourier Transform" // heading  
 				);
 		graphViews.addSeries(plotxs); // data  
 		graphViews.addSeries(plotys);
@@ -244,13 +253,14 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 		LinearLayout layouts = (LinearLayout) view.findViewById(R.id.subLayoutS);  
 		layouts.addView(graphViews);
-		graphViews.setManualYAxisBounds(30,0);
-		graphViews.getGraphViewStyle().setNumHorizontalLabels(10);
+		graphViews.setManualYAxisBounds(50,0);
+		graphViews.getGraphViewStyle().setNumHorizontalLabels(11);
+		graphViews.setHorizontalLabels(freqs);
 		graphViews.getGraphViewStyle().setVerticalLabelsColor(Color.BLACK);
 		graphViews.getGraphViewStyle().setHorizontalLabelsColor(Color.BLACK);
 		graphViews.getGraphViewStyle().setGridColor(Color.BLACK);
 		graphViews.setShowLegend(true);
-		graphViews.setLegendAlign(LegendAlign.BOTTOM);
+		graphViews.setLegendAlign(LegendAlign.TOP);
 
 		dataview = (Button)view.findViewById(R.id.dvbutton);
 		dataview.setOnClickListener(this);
@@ -279,8 +289,8 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 	@Override
 	public void onPause() {
-		//beep.release();
-		//beep = null;
+		beep.release();
+		beep = null;
 		super.onPause();
 	}
 
@@ -300,115 +310,71 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 		if (uuidStr.equals(UUID_ACC_DATA.toString())) {
 			v = TagSensor.ACCELEROMETER.convert(rawValue);
-			msg = decimal.format(v.x*9.81) + "\n" + decimal.format(v.y*9.81) + "\n" + decimal.format(v.z*9.81) + "\n";
+			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
+			msg = decimal.format(x) + "\n" + decimal.format(y) + "\n" + decimal.format(z) + "\n";
 			mAccValue.setText(msg);
-			double sumx=0;
-			double sumy=0;
-			double sumz=0;
-			Vibrator vibe = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
 			//Low pass, equiripple, 0{11}, Fs=10Hz, Fpass=3Hz, Fstop=5Hz
 
 			//Implement algorithm here!!!!!!!
-
-			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
-			if(accx.size() >= sensorpoints){
-				accx.add(x);
+			accx.add(x);
+			accy.add(y);
+			accz.add(z);			
+			if(accx.size()>=sensorpoints){
 				accx.remove(0);
-				accy.add(y);
 				accy.remove(0);
-				accz.add(z);
 				accz.remove(0);
-				meanx*=accx.size()-1;
-				meanx+=x;
-				meanx/=accx.size();
-				meany*=accy.size()-1;
-				meany+=y;
-				meany/=accy.size();
-				meanz*=accz.size()-1;
-				meanz+=z;
-				meanz/=accz.size();
-				
-				for(int n=0;n<sensorpoints;n++){
+			}
+			meanx*=accx.size()-1;
+			meanx+=x;
+			meanx/=accx.size();
+			meany*=accy.size()-1;
+			meany+=y;
+			meany/=accy.size();
+			meanz*=accz.size()-1;
+			meanz+=z;
+			meanz/=accz.size();
+
+			for(int n=0;n<accx.size();n++){
 				compx[n]=(new Complex(accx.get(n)-meanx,(double)0));
 				compy[n]=(new Complex(accy.get(n)-meany,(double)0));
 				compz[n]=(new Complex(accz.get(n)-meanz,(double)0));
-				}
-				fftx=FFT.fft(compx);
-				ffty=FFT.fft(compy);
-				fftz=FFT.fft(compz);
+			}
+			fftx=FFT.fft(compx);
+			ffty=FFT.fft(compy);
+			fftz=FFT.fft(compz);
 
-				// reset GraphViewData with newest values
-				GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
-				GraphViewData[] newdatays = new GraphViewData[sensorpoints];
-				GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
-				for(int m=0;m<sensorpoints;m++){
-					newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
-					newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
-					newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
-				}
-				plotxs.resetData(newdataxs);
-				plotys.resetData(newdatays);
-				plotzs.resetData(newdatazs);
-				
-				
-				if(Math.sqrt(x*x+z*z)>5){
-					// Vibrate for 50 milliseconds
-					tstep2=SystemClock.uptimeMillis();
-					if(tstep2-tstep1>300){	
-						beep.start(); // vibrate for 50 ms
-						tstep1=tstep2;
-						stepCount++;
-						mCalcTest.setText(stepCount+" steps recorded.");
-					}
-				}
-			}else {
-				accx.add(x);
-				accy.add(y);
-				accz.add(z);
-				meanx*=accx.size()-1;
-				meanx+=x;
-				meanx/=accx.size();
-				meany*=accy.size()-1;
-				meany+=y;
-				meany/=accy.size();
-				meanz*=accz.size()-1;
-				meanz+=z;
-				meanz/=accz.size();
-				
-				for(int n=0;n<accx.size();n++){
-					compx[n]=(new Complex(accx.get(n)-meanx,(double)0));
-					compy[n]=(new Complex(accy.get(n)-meany,(double)0));
-					compz[n]=(new Complex(accz.get(n)-meanz,(double)0));
-					}
-					fftx=FFT.fft(compx);
-					ffty=FFT.fft(compy);
-					fftz=FFT.fft(compz);
+			Complex[] lowbandmean=Complex.subset(ffty, lowbandl, lowbandh);
+			//double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh));
+			//mCalcTest.setText(lowbandmean.length);
+			//if (highbandmean/lowbandmean>2){
+			//beep.start();
+			//}
+			// reset GraphViewData with newest values
+			GraphViewData[] newdataxs = new GraphViewData[accx.size()/2];
+			GraphViewData[] newdatays = new GraphViewData[accx.size()/2];
+			GraphViewData[] newdatazs = new GraphViewData[accx.size()/2];
+			for(int m=0;m<accx.size()/2;m++){
+				newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
+				newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
+				newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
+			}
+			plotxs.resetData(newdataxs);
+			plotys.resetData(newdatays);
+			plotzs.resetData(newdatazs);
 
-					// reset GraphViewData with newest values
-					GraphViewData[] newdataxs = new GraphViewData[sensorpoints];
-					GraphViewData[] newdatays = new GraphViewData[sensorpoints];
-					GraphViewData[] newdatazs = new GraphViewData[sensorpoints];
-					for(int m=0;m<sensorpoints;m++){
-						newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
-						newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
-						newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
-					}
-					plotxs.resetData(newdataxs);
-					plotys.resetData(newdatays);
-					plotzs.resetData(newdatazs);
-				
-				if(Math.sqrt(x*x+z*z)>5){
-					// Vibrate for 50 milliseconds
-					tstep2=SystemClock.uptimeMillis();
-					if(tstep2-tstep1>300){	
-						beep.start(); // vibrate for 50 ms
-						tstep1=tstep2;
-						stepCount++;
-						mCalcTest.setText(stepCount+" steps recorded.");
-					}
+
+			if(Math.sqrt(x*x+z*z)>5){
+				// Vibrate for 50 milliseconds
+				tstep2=SystemClock.uptimeMillis();
+				if(tstep2-tstep1>300){	
+					beep.start(); // vibrate for 50 ms
+					tstep1=tstep2;
+					stepCount++;
+					//mCalcTest.setText(stepCount+" steps recorded.");
+				}
 			}
 		}
-	}};
+	};
 
 
 	void updateVisibility() {
@@ -529,7 +495,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			beep.start();
 			vib.vibrate(50); // vibrate for 50 ms
 			stepCount=0;
-			mCalcTest.setText("0 steps recorded");
+			//mCalcTest.setText("0 steps recorded");
 			break;
 		case R.id.button2:
 			if(state == 0){
@@ -553,6 +519,9 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		}
 
 	}
+
+
+
 
 }
 

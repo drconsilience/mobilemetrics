@@ -161,9 +161,9 @@ public class Complex {
 		return subset;
 	}
 	
-	public static double mean(Complex[] m) {
+	public static double mean(Complex[] m,int length) {
 		double sum = 0;
-		for (int i = 0; i < m.length; i++) {
+		for (int i = 0; i < length; i++) {
 			sum += Complex.abs(m[i]);
 		}
 		return sum / m.length;

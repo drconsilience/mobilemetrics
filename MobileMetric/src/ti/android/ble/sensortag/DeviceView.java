@@ -343,12 +343,12 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			ffty=FFT.fft(compy);
 			fftz=FFT.fft(compz);
 
-			Complex[] lowbandmean=Complex.subset(ffty, lowbandl, lowbandh);
-			//double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh));
-			//mCalcTest.setText(lowbandmean.length);
-			//if (highbandmean/lowbandmean>2){
-			//beep.start();
-			//}
+			double lowbandmean=Complex.mean(Complex.subset(ffty, lowbandl, lowbandh), lowbandh-lowbandl);
+			double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh),highbandh-highbandl);
+			mCalcTest.setText("Hi/Lo Ratio= "+highbandmean/lowbandmean);
+			if (highbandmean/lowbandmean>2){
+				beep.start();
+			}
 			// reset GraphViewData with newest values
 			GraphViewData[] newdataxs = new GraphViewData[accx.size()/2];
 			GraphViewData[] newdatays = new GraphViewData[accx.size()/2];

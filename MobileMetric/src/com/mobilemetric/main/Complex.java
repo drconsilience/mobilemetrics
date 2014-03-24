@@ -162,10 +162,15 @@ public class Complex {
 	}
 	
 	public static double mean(Complex[] m,int length) {
+		double sum=sum(m,length);
+		return sum / m.length;
+	}
+	
+	public static double sum(Complex[] m,int length) {
 		double sum = 0;
 		for (int i = 0; i < length; i++) {
 			sum += Complex.abs(m[i]);
 		}
-		return sum / m.length;
+		return sum;
 	}
 }

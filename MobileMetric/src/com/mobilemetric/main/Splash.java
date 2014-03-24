@@ -4,7 +4,6 @@ import ti.android.ble.sensortag.R;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 
 public class Splash extends Activity{

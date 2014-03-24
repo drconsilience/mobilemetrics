@@ -39,13 +39,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 import ti.android.util.Point3D;
-import android.app.Activity;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -53,7 +50,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.v4.app.Fragment;
@@ -63,9 +59,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
@@ -79,7 +75,7 @@ import com.mobilemetric.main.FFT;
 import android.view.View.OnClickListener;
 
 // Fragment for Device View
-public class DeviceView extends Fragment implements SensorEventListener,OnClickListener{
+public class DeviceView extends Fragment implements SensorEventListener,OnClickListener,SeekBar.OnSeekBarChangeListener{
 	private SensorManager sensorManager;
 	TextView xCoor; // declare X axis object
 	TextView yCoor; // declare Y axis object
@@ -102,11 +98,20 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	double meanx=0;
 	double meany=0;
 	double meanz=0;
-	double hzratio=sensorpoints/10;
+	double samplefreq=10;
+	double beepwait=1000;
+	double hzratio=sensorpoints/samplefreq;
 	int lowbandl=(int) Math.ceil(0.5*hzratio);
 	int lowbandh=(int) Math.floor(3*hzratio);
 	int highbandl=(int) Math.ceil(3*hzratio);
 	int highbandh=(int) Math.floor(5*hzratio);
+	boolean beeping=false;
+	double maxtriggerratio=2;
+	double triggerratio=maxtriggerratio;
+	boolean firstbeep=false;
+	String algorithm1="Fourier Method";
+	String algorithm2="Step Detection Method";
+	int currentAlgorithm=1;
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
@@ -134,6 +139,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	private TextView mAccValue;
 	private TextView mStatus;
 	private TextView mCalcTest;
+	private TextView showRatio;
 
 	// House-keeping
 	private DecimalFormat decimal = new DecimalFormat("+0.00;-0.00");
@@ -155,6 +161,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	Button btn1;
 	Button btn2;
 	String[] freqs;
+	SeekBar slideRatio;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -178,7 +185,14 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		dtime=(TextView)view.findViewById(R.id.dt);
 		dtable=(TableLayout)view.findViewById(R.id.datatable);
 		dtable.setVisibility(View.GONE);
-		//mCalcTest.setText("0 steps recorded");
+		dataview = (Button)view.findViewById(R.id.dvbutton);
+		dataview.setOnClickListener(this);
+		slideRatio=(SeekBar)view.findViewById(R.id.slideRatio);
+		showRatio=(TextView)view.findViewById(R.id.showRatio);
+		slideRatio.setOnSeekBarChangeListener(this);
+		dataview.setText("Switch from "+algorithm1+" to "+algorithm2);
+		mCalcTest.setText("Hi/Lo ratio not yet calculated");
+
 
 		sensorManager=(SensorManager)getActivity().getSystemService(Context.SENSOR_SERVICE);
 		// add listener. The listener will be HelloAndroid (this) class
@@ -262,9 +276,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		graphViews.setShowLegend(true);
 		graphViews.setLegendAlign(LegendAlign.TOP);
 
-		dataview = (Button)view.findViewById(R.id.dvbutton);
-		dataview.setOnClickListener(this);
-
 		btn1 = (Button)view.findViewById(R.id.button1);
 		btn1.setOnClickListener(this);
 
@@ -298,14 +309,12 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	 * Handle changes in sensor values
 	 * */
 
-	double[] coefs =new double[] {.0079,-.0263,.0694,-.1715,.6219,.6219,-.1715,.0694,-.0263,.0079,-.0015};
-
-
 	public void onCharacteristicChanged(String uuidStr, byte[] rawValue) {
 		Point3D v;
 		String msg;
 		t2=SystemClock.uptimeMillis();
 		dt=t2-t1;
+		dtime.setText("dt: "+dt);
 		t1=t2;
 
 		if (uuidStr.equals(UUID_ACC_DATA.toString())) {
@@ -313,7 +322,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
 			msg = decimal.format(x) + "\n" + decimal.format(y) + "\n" + decimal.format(z) + "\n";
 			mAccValue.setText(msg);
-			//Low pass, equiripple, 0{11}, Fs=10Hz, Fpass=3Hz, Fstop=5Hz
 
 			//Implement algorithm here!!!!!!!
 			accx.add(x);
@@ -333,49 +341,55 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			meanz*=accz.size()-1;
 			meanz+=z;
 			meanz/=accz.size();
+			if (currentAlgorithm==1){
 
-			for(int n=0;n<accx.size();n++){
-				compx[n]=(new Complex(accx.get(n)-meanx,(double)0));
-				compy[n]=(new Complex(accy.get(n)-meany,(double)0));
-				compz[n]=(new Complex(accz.get(n)-meanz,(double)0));
-			}
-			fftx=FFT.fft(compx);
-			ffty=FFT.fft(compy);
-			fftz=FFT.fft(compz);
+				for(int n=0;n<accx.size();n++){
+					compx[n]=(new Complex(accx.get(n)-meanx,(double)0));
+					compy[n]=(new Complex(accy.get(n)-meany,(double)0));
+					compz[n]=(new Complex(accz.get(n)-meanz,(double)0));
+				}
+				fftx=FFT.fft(compx);
+				ffty=FFT.fft(compy);
+				fftz=FFT.fft(compz);
 
-			double lowbandmean=Complex.mean(Complex.subset(ffty, lowbandl, lowbandh), lowbandh-lowbandl);
-			double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh),highbandh-highbandl);
-			mCalcTest.setText("Hi/Lo Ratio= "+highbandmean/lowbandmean);
-			if (highbandmean/lowbandmean>2){
-				beep.start();
-			}
-			// reset GraphViewData with newest values
-			GraphViewData[] newdataxs = new GraphViewData[accx.size()/2];
-			GraphViewData[] newdatays = new GraphViewData[accx.size()/2];
-			GraphViewData[] newdatazs = new GraphViewData[accx.size()/2];
-			for(int m=0;m<accx.size()/2;m++){
-				newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
-				newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
-				newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
-			}
-			plotxs.resetData(newdataxs);
-			plotys.resetData(newdatays);
-			plotzs.resetData(newdatazs);
-
-
-			if(Math.sqrt(x*x+z*z)>5){
-				// Vibrate for 50 milliseconds
-				tstep2=SystemClock.uptimeMillis();
-				if(tstep2-tstep1>300){	
-					beep.start(); // vibrate for 50 ms
-					tstep1=tstep2;
-					stepCount++;
-					//mCalcTest.setText(stepCount+" steps recorded.");
+				double lowbandmean=Complex.mean(Complex.subset(ffty, lowbandl, lowbandh), lowbandh-lowbandl);
+				double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh),highbandh-highbandl);
+				double bandratio=highbandmean/lowbandmean;
+				mCalcTest.setText("Hi/Lo Ratio= "+decimal.format(bandratio));
+				if (bandratio>triggerratio){
+					tstep2=SystemClock.uptimeMillis();
+					if(tstep2-tstep1>beepwait){	
+						beep.start();
+						tstep1=tstep2;
+					}
+				}
+				// reset GraphViewData with newest values
+				GraphViewData[] newdataxs = new GraphViewData[accx.size()/2];
+				GraphViewData[] newdatays = new GraphViewData[accx.size()/2];
+				GraphViewData[] newdatazs = new GraphViewData[accx.size()/2];
+				for(int m=0;m<accx.size()/2;m++){
+					newdataxs[m]=new GraphViewData(m, Complex.abs(fftx[m]));
+					newdatays[m]=new GraphViewData(m, Complex.abs(ffty[m]));
+					newdatazs[m]=new GraphViewData(m, Complex.abs(fftz[m]));
+				}
+				plotxs.resetData(newdataxs);
+				plotys.resetData(newdatays);
+				plotzs.resetData(newdatazs);
+			}else if (currentAlgorithm==2){
+				if(Math.sqrt(x*x+z*z)>5){
+					// Vibrate for 50 milliseconds
+					tstep2=SystemClock.uptimeMillis();
+					if(tstep2-tstep1>300){	
+						beep.start(); // vibrate for 50 ms
+						tstep1=tstep2;
+						stepCount++;
+						mCalcTest.setText(stepCount+" steps recorded.");
+					}
 				}
 			}
-		}
-	};
 
+		}
+	}
 
 	void updateVisibility() {
 		showItem(ID_ACC,mActivity.isEnabledByPrefs(TagSensor.ACCELEROMETER));
@@ -485,6 +499,11 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		}
 	}
 
+	public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
+		showRatio.setText("Trigger ratio is "+(double)progress/100*maxtriggerratio);
+		triggerratio=(double)progress/100*maxtriggerratio;
+	}
+
 	public void onClick(View v){
 		switch (v.getId()){
 		case R.id.button1:
@@ -494,9 +513,10 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			// Vibrate for 50 milliseconds
 			beep.start();
 			vib.vibrate(50); // vibrate for 50 ms
-			stepCount=0;
-			//mCalcTest.setText("0 steps recorded");
-			break;
+			if(currentAlgorithm==2){
+				stepCount=0;
+				mCalcTest.setText("0 steps recorded");
+			}break;
 		case R.id.button2:
 			if(state == 0){
 				state = 1;
@@ -508,20 +528,43 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			}
 			break;
 		case R.id.dvbutton:
-			if(dtable.getVisibility()==View.GONE){
+			if(currentAlgorithm==1){
+				dataview.setText("Switch from "+algorithm2+" to "+algorithm1);
+				currentAlgorithm=2;;
+				mCalcTest.setText("0 steps recorded");
+				stepCount=0;
+				slideRatio.setVisibility(View.GONE);
+				showRatio.setVisibility(View.GONE);
+			}else {
+				dataview.setText("Switch from "+algorithm1+" to "+algorithm2);
+				currentAlgorithm=1;
+				mCalcTest.setText("Hi/Lo ratio not yet calculated");
+				slideRatio.setVisibility(View.VISIBLE);
+				showRatio.setVisibility(View.VISIBLE);
+			}
+			/*if(dtable.getVisibility()==View.GONE){
 				dtable.setVisibility(View.VISIBLE);
 				dataview.setText("Hide Summary");
 			}else if(dtable.getVisibility()==View.VISIBLE){
 				dtable.setVisibility(View.GONE);
 				dataview.setText("Show Summary");
-			}
+			}*/
 			break;
 		}
 
 	}
 
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {
+		// TODO Auto-generated method stub
 
+	}
 
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {
+		// TODO Auto-generated method stub
+
+	}
 
 }
 

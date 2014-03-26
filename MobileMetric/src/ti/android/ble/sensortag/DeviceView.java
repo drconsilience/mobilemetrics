@@ -112,6 +112,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	String algorithm1="Fourier Method";
 	String algorithm2="Step Detection Method";
 	int currentAlgorithm=1;
+	int devmodestate=1;
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
@@ -135,6 +136,8 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 	// GUI
 	private TableLayout table;
+	private TableLayout devlayout;
+	private TableLayout patlayout;
 	private TableLayout dtable;
 	private TextView mAccValue;
 	private TextView mStatus;
@@ -158,6 +161,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	String nam;
 	File dir;
 	Button dataview;
+	Button devmode;
 	Button btn1;
 	Button btn2;
 	String[] freqs;
@@ -174,6 +178,8 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 		// Hide all Sensors initially (but show the last line for status)
 		table = (TableLayout) view.findViewById(R.id.services_browser_layout);
+		devlayout= (TableLayout) view.findViewById(R.id.developer_layout);
+		patlayout= (TableLayout) view.findViewById(R.id.patient_layout);
 
 		// UI widgets
 		mAccValue = (TextView) view.findViewById(R.id.accelerometerTxt);
@@ -187,11 +193,14 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		dtable.setVisibility(View.GONE);
 		dataview = (Button)view.findViewById(R.id.dvbutton);
 		dataview.setOnClickListener(this);
+		devmode = (Button)view.findViewById(R.id.devMode);
+		devmode.setOnClickListener(this);
 		slideRatio=(SeekBar)view.findViewById(R.id.slideRatio);
 		showRatio=(TextView)view.findViewById(R.id.showRatio);
 		slideRatio.setOnSeekBarChangeListener(this);
 		dataview.setText("Switch from "+algorithm1+" to "+algorithm2);
 		mCalcTest.setText("Hi/Lo ratio not yet calculated");
+		patlayout.setVisibility(View.GONE);
 
 
 		sensorManager=(SensorManager)getActivity().getSystemService(Context.SENSOR_SERVICE);
@@ -541,15 +550,19 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				mCalcTest.setText("Hi/Lo ratio not yet calculated");
 				slideRatio.setVisibility(View.VISIBLE);
 				showRatio.setVisibility(View.VISIBLE);
+			}break;
+		case R.id.devMode:
+			if (devmodestate==1){
+				devlayout.setVisibility(View.GONE);
+				patlayout.setVisibility(View.VISIBLE);
+				devmode.setText("Turn Developer Mode ON");
+				devmodestate=0;
+			}else{
+				devlayout.setVisibility(View.VISIBLE);
+				patlayout.setVisibility(View.GONE);
+				devmode.setText("Turn Developer Mode OFF");
+				devmodestate=1;
 			}
-			/*if(dtable.getVisibility()==View.GONE){
-				dtable.setVisibility(View.VISIBLE);
-				dataview.setText("Hide Summary");
-			}else if(dtable.getVisibility()==View.VISIBLE){
-				dtable.setVisibility(View.GONE);
-				dataview.setText("Show Summary");
-			}*/
-			break;
 		}
 
 	}

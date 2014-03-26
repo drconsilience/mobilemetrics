@@ -4,51 +4,26 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-   <TableLayout
+    <TableLayout
         android:id="@+id/services_browser_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:shrinkColumns="*"
         android:stretchColumns="*" >
 
-        <TableRow style="@style/ServiceHeaderRow" >
-
-            <TextView
-                style="@style/ServiceHeaderItem"
-                android:text="@string/acc" />
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/accPanel"
-            style="@style/ServiceRow" >
-
-            <TextView
-                style="@style/ServiceItem"
-                android:text="@string/xyz3" />
-
-            <TextView
-                android:id="@+id/accelerometerTxt"
-                style="@style/ServiceItemValue"
-                android:text="@string/empty3" />
-            
-
-
-            <TextView 
-                style="@style/ServiceItem"
-                android:text="@string/unitG3" />
-        </TableRow>
-        
         <Button
-         android:id="@+id/dvbutton"
-         android:layout_width="150dp"
-         android:layout_height="100dp"
-         android:text="Show Summary"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/devMode"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.10"
-            android:orientation="horizontal" >
+            android:text="Turn Developer Mode OFF" />
+
+        <TableLayout
+            android:id="@+id/patient_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shrinkColumns="*"
+            android:stretchColumns="*" 
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="0dip"
@@ -57,118 +32,169 @@
                 android:orientation="vertical" >
 
                 <TextView
-                    android:id="@+id/xcoor"
+                    android:id="@+id/patTxt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="X Coordinate: "
-                    android:textColor="#900"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/ycoor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y Coordinate: "
-                    android:textColor="#090"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/zcoor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Z Coordinate: "
-                    android:textColor="#009"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/dt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="dt: "
+                    android:text="Your device is working!"
                     android:textColor="#000"
                     android:textSize="20sp" />
+            </LinearLayout>
+        </TableLayout>
+
+        <TableLayout
+            android:id="@+id/developer_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shrinkColumns="*"
+            android:stretchColumns="*" >
+
+            <TableRow style="@style/ServiceHeaderRow" >
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/accPanel"
+                style="@style/ServiceRow" >
 
                 <TextView
-                    android:id="@+id/calctest"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" "
-                    android:textColor="#000"
-                    android:textSize="20sp" />
-
-                <SeekBar
-                    android:id="@+id/slideRatio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" 
-                    android:progress="100"/>
+                    style="@style/ServiceItem"
+                    android:text="@string/xyz3" />
 
                 <TextView
-                    android:id="@+id/showRatio"
-                    android:layout_width="match_parent"
+                    android:id="@+id/accelerometerTxt"
+                    style="@style/ServiceItemValue"
+                    android:text="@string/empty3" />
+
+                <TextView
+                    style="@style/ServiceItem"
+                    android:text="@string/unitG3" />
+            </TableRow>
+
+            <Button
+                android:id="@+id/dvbutton"
+                android:layout_width="150dp"
+                android:layout_height="100dp"
+                android:text="Switch from Fourier Method to Step Detection Method" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.10"
+                android:orientation="horizontal" >
+
+                <LinearLayout
+                    android:layout_width="0dip"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Trigger Ratio is 2.0" />
+                    android:layout_weight="1"
+                    android:orientation="vertical" >
 
-                <TableLayout
-                    android:id="@+id/datatable"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:shrinkColumns="*"
-                    android:stretchColumns="*" >
+                    <TextView
+                        android:id="@+id/xcoor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="X Coordinate: "
+                        android:textColor="#900"
+                        android:textSize="20sp" />
 
-                    <TableRow
-                        android:id="@+id/tablerow"
-                        style="@style/ServiceHeaderRow" >
+                    <TextView
+                        android:id="@+id/ycoor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Y Coordinate: "
+                        android:textColor="#090"
+                        android:textSize="20sp" />
 
-                        <TextView
-                            style="@style/ServiceHeaderItem"
-                            android:text="Summary Data Could Go Here" />
-                    </TableRow>
-                </TableLayout>
+                    <TextView
+                        android:id="@+id/zcoor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Z Coordinate: "
+                        android:textColor="#009"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/dt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="dt: "
+                        android:textColor="#000"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/calctest"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" "
+                        android:textColor="#000"
+                        android:textSize="20sp" />
+
+                    <SeekBar
+                        android:id="@+id/slideRatio"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:progress="100" />
+
+                    <TextView
+                        android:id="@+id/showRatio"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Trigger Ratio is 2.0"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TableLayout
+                        android:id="@+id/datatable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:shrinkColumns="*"
+                        android:stretchColumns="*" >
+
+                        <TableRow
+                            android:id="@+id/tablerow"
+                            style="@style/ServiceHeaderRow" >
+                        </TableRow>
+                    </TableLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/button1"
+                    android:layout_width="75dp"
+                    android:layout_height="100dp"
+                    android:text="Reset Step Count" />
+
+                <Button
+                    android:id="@+id/button2"
+                    android:layout_width="75dp"
+                    android:layout_height="100dp"
+                    android:text="Rec" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="75dp"
-                android:layout_height="100dp"
-                android:text="Reset Step Count" />
-
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="75dp"
-                android:layout_height="100dp"
-                android:text="Rec" />
-
-        </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/subLayout"
-        android:layout_height="150dip"
-        android:layout_width="match_parent"
-        android:orientation="vertical" >
-        
-    </LinearLayout>
-        <LinearLayout
-        android:id="@+id/subLayoutS"
-        android:layout_height="150dip"
-        android:layout_width="match_parent"
-        android:orientation="vertical" >
-        
-    </LinearLayout>
-        <TableRow
-            android:id="@+id/statusPanel"
-            style="@style/ServiceRow" >
-
-            <TextView
-                android:id="@+id/status"
-                style="@style/statusStyle"
+            <LinearLayout
+                android:id="@+id/subLayout"
                 android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:layout_span="4"
-                android:gravity="center"
-                android:textSize="12sp" />
-        </TableRow>
-        
+                android:layout_height="150dip"
+                android:orientation="vertical" >
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/subLayoutS"
+                android:layout_width="match_parent"
+                android:layout_height="150dip"
+                android:orientation="vertical" >
+            </LinearLayout>
+
+            <TableRow
+                android:id="@+id/statusPanel"
+                style="@style/ServiceRow" >
+
+                <TextView
+                    android:id="@+id/status"
+                    style="@style/statusStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_span="4"
+                    android:gravity="center"
+                    android:textSize="12sp" />
+            </TableRow>
+        </TableLayout>
     </TableLayout>
 
 </ScrollView>

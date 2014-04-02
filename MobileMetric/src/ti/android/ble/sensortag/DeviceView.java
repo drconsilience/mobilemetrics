@@ -384,7 +384,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				plotxs.resetData(newdataxs);
 				plotys.resetData(newdatays);
 				plotzs.resetData(newdatazs);
-				
+
 				//Paige code here
 			}else if (currentAlgorithm==2){
 				if(Math.sqrt(x*x+z*z)>5){

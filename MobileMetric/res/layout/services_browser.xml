@@ -8,8 +8,7 @@
         android:id="@+id/services_browser_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:shrinkColumns="*"
-        android:stretchColumns="*" >
+        android:shrinkColumns="*" >
 
         <Button
             android:id="@+id/devMode"
@@ -22,7 +21,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:shrinkColumns="*"
-            android:stretchColumns="*" 
             android:visibility="gone">
 
             <LinearLayout
@@ -45,8 +43,7 @@
             android:id="@+id/developer_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:shrinkColumns="*"
-            android:stretchColumns="*" >
+            android:shrinkColumns="*">
 
             <TableRow style="@style/ServiceHeaderRow" >
             </TableRow>
@@ -144,8 +141,7 @@
                         android:id="@+id/datatable"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:shrinkColumns="*"
-                        android:stretchColumns="*" >
+                        android:shrinkColumns="*" >
 
                         <TableRow
                             android:id="@+id/tablerow"

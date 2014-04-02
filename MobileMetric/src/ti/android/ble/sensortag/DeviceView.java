@@ -384,12 +384,13 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				plotxs.resetData(newdataxs);
 				plotys.resetData(newdatays);
 				plotzs.resetData(newdatazs);
+				
+				//Paige code here
 			}else if (currentAlgorithm==2){
 				if(Math.sqrt(x*x+z*z)>5){
-					// Vibrate for 50 milliseconds
 					tstep2=SystemClock.uptimeMillis();
 					if(tstep2-tstep1>300){	
-						beep.start(); // vibrate for 50 ms
+						beep.start(); 
 						tstep1=tstep2;
 						stepCount++;
 						mCalcTest.setText(stepCount+" steps recorded.");
@@ -562,7 +563,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				patlayout.setVisibility(View.GONE);
 				devmode.setText("Turn Developer Mode OFF");
 				devmodestate=1;
-			}
+			}break;
 		}
 
 	}

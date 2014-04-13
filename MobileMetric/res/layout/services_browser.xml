@@ -16,28 +16,242 @@
             android:layout_height="wrap_content"
             android:text="Turn Developer Mode OFF" />
 
-        <TableLayout
+        <LinearLayout
             android:id="@+id/patient_layout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shrinkColumns="*"
-            android:visibility="gone" >
-
-            <LinearLayout
-                android:layout_width="0dip"
+            android:orientation="vertical" >
+			
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textSize="40sp"
+                android:text="Your device is working!" >    
+            </TextView>
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
                 android:layout_weight="1"
                 android:orientation="vertical" >
+                
+                <Button 
+                    android:id="@+id/tutorial"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" 
+                    android:textSize="30sp"
+                    android:text="Tutorials"
+                    />
+                <Button 
+                    android:id="@+id/history"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" 
+                    android:textSize="30sp"
+                    android:text="History"
+                    />
+                <Button 
+                    android:id="@+id/exit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" 
+                    android:textSize="30sp"
+                    android:text="Exit"
+                    />
 
-                <TextView
-                    android:id="@+id/patTxt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Your device is working!"
-                    android:textColor="#000"
-                    android:textSize="20sp" />
+               
             </LinearLayout>
-        </TableLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/testlayout"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#ffffff"
+            android:orientation="vertical" >
+
+            <Button
+                android:id="@+id/button1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Record" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.05" >
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/button2"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Walking" />
+
+                <Button
+                    android:id="@+id/button3"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sitting" />
+
+                <Button
+                    android:id="@+id/button4"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Standing" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/button5"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Normal" />
+
+                <Button
+                    android:id="@+id/button6"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Still" />
+
+                <Button
+                    android:id="@+id/button7"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Still" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/button8"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Slowing" />
+
+                <Button
+                    android:id="@+id/button9"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tremor" />
+
+                <Button
+                    android:id="@+id/button10"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tremor" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/button11"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="FoG" />
+
+                <Button
+                    android:id="@+id/button12"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Other" />
+
+                <Button
+                    android:id="@+id/button13"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Other" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/button14"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Turning" />
+
+                <Button
+                    android:id="@+id/buttonp1"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="" />
+
+                <Button
+                    android:id="@+id/buttonp2"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <ToggleButton
+                    android:id="@+id/button15"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOff="Event"
+                    android:textOn="Event" />
+
+                <ToggleButton
+                    android:id="@+id/button16"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOff="Intentional"
+                    android:textOn="Intentional" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <SeekBar
+                    android:id="@+id/seekBar1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="10" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/subLayout"
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="1"
+                android:orientation="vertical" >
+            </LinearLayout>
+        </LinearLayout>
 
         <TableLayout
             android:id="@+id/developer_layout"
@@ -149,25 +363,6 @@
                         </TableRow>
                     </TableLayout>
                 </LinearLayout>
-
-                <Button
-                    android:id="@+id/button1"
-                    android:layout_width="75dp"
-                    android:layout_height="100dp"
-                    android:text="Reset Step Count" />
-
-                <Button
-                    android:id="@+id/button2"
-                    android:layout_width="75dp"
-                    android:layout_height="100dp"
-                    android:text="Rec" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/subLayout"
-                android:layout_width="match_parent"
-                android:layout_height="150dip"
-                android:orientation="vertical" >
             </LinearLayout>
 
             <LinearLayout

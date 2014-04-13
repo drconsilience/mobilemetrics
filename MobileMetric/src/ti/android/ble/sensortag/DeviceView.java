@@ -39,7 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.Calendar;
 
 import ti.android.util.Point3D;
 import android.content.Context;
@@ -51,7 +51,6 @@ import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.os.Vibrator;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -77,6 +76,7 @@ import android.view.View.OnClickListener;
 // Fragment for Device View
 public class DeviceView extends Fragment implements SensorEventListener,OnClickListener,SeekBar.OnSeekBarChangeListener{
 	private SensorManager sensorManager;
+	View view;
 	TextView xCoor; // declare X axis object
 	TextView yCoor; // declare Y axis object
 	TextView zCoor; // declare Z axis object
@@ -113,6 +113,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	String algorithm2="Step Detection Method";
 	int currentAlgorithm=1;
 	int devmodestate=1;
+	double bandratio;
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
@@ -134,10 +135,27 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 	public static DeviceView mInstance = null;
 
+	//Andrews Variables
+
+	int i = 0; // declare iteration counter and samples to wait variable
+	int sec = 10;
+	int n_and = 2;
+
+	long tone; // declare time variables
+	long ttwo;
+	long dt_and;
+
+	int state = 0;
+	int movstate = 0;
+	int movcond = 0;
+	int evnt = 0;
+	int intn = 0;
+
 	// GUI
 	private TableLayout table;
 	private TableLayout devlayout;
-	private TableLayout patlayout;
+	private LinearLayout patlayout;
+	private LinearLayout testlayout;
 	private TableLayout dtable;
 	private TextView mAccValue;
 	private TextView mStatus;
@@ -153,7 +171,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	long dt;
 	long tstep1;
 	long tstep2;
-	int state = 0;
+	//int state = 0;
 	int stepCount=0;
 	FileOutputStream outputStream;
 	File newFile;
@@ -166,7 +184,8 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	Button btn2;
 	String[] freqs;
 	SeekBar slideRatio;
-
+	Calendar cal;
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Log.i(TAG, "onCreateView");
@@ -174,12 +193,13 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		mActivity = (DeviceActivity) getActivity();
 		beep=MediaPlayer.create(getActivity(), R.raw.beep);
 		// The last two arguments ensure LayoutParams are inflated properly.
-		View view = inflater.inflate(R.layout.services_browser, container, false);
+		view = inflater.inflate(R.layout.services_browser, container, false);
 
 		// Hide all Sensors initially (but show the last line for status)
 		table = (TableLayout) view.findViewById(R.id.services_browser_layout);
 		devlayout= (TableLayout) view.findViewById(R.id.developer_layout);
-		patlayout= (TableLayout) view.findViewById(R.id.patient_layout);
+		patlayout= (LinearLayout) view.findViewById(R.id.patient_layout);
+		testlayout= (LinearLayout) view.findViewById(R.id.testlayout);
 
 		// UI widgets
 		mAccValue = (TextView) view.findViewById(R.id.accelerometerTxt);
@@ -263,6 +283,20 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		graphViews.addSeries(plotys);
 		graphViews.addSeries(plotzs);
 
+		//Andrew new stuff
+		int[] buttons = {R.id.button1, R.id.button2, R.id.button3, R.id.button4, 
+				R.id.button5, R.id.button6, R.id.button7, R.id.button8, 
+				R.id.button9, R.id.button10, R.id.button11, R.id.button12, 
+				R.id.button13, R.id.button14, R.id.button15, R.id.button16};
+		for(int i=0;i<buttons.length;i++){
+			Button b = (Button)view.findViewById(buttons[i]);
+			b.setOnClickListener(this);
+		}
+		view.findViewById(R.id.button1).setBackgroundColor(Color.RED);
+
+		SeekBar bar = (SeekBar)view.findViewById(R.id.seekBar1);
+		bar.setOnSeekBarChangeListener(this);
+
 		// Format the view
 		LinearLayout layout = (LinearLayout) view.findViewById(R.id.subLayout);  
 		layout.addView(graphView);
@@ -291,13 +325,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		btn2 = (Button)view.findViewById(R.id.button2);
 		btn2.setOnClickListener(this);
 
-		Context thisContext = getActivity();
-		path = thisContext.getExternalFilesDir(null).getAbsolutePath();
-		dir = new File(path);
-		int n = dir.list().length+1;
-		nam = "/data" + n + ".txt";
-		newFile = new File(path + nam);
-
 		return view;
 	}
 
@@ -319,14 +346,14 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	 * */
 
 	public void onCharacteristicChanged(String uuidStr, byte[] rawValue) {
-		Point3D v;
-		String msg;
-		t2=SystemClock.uptimeMillis();
-		dt=t2-t1;
-		dtime.setText("dt: "+dt);
-		t1=t2;
 
 		if (uuidStr.equals(UUID_ACC_DATA.toString())) {
+			Point3D v;
+			String msg;
+			t2=SystemClock.uptimeMillis();
+			dt=t2-t1;
+			dtime.setText("dt: "+dt);
+			t1=t2;
 			v = TagSensor.ACCELEROMETER.convert(rawValue);
 			double x = v.x*9.81; double y = v.y*9.81; double z = v.z*9.81;
 			msg = decimal.format(x) + "\n" + decimal.format(y) + "\n" + decimal.format(z) + "\n";
@@ -363,7 +390,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 				double lowbandmean=Complex.mean(Complex.subset(ffty, lowbandl, lowbandh), lowbandh-lowbandl);
 				double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh),highbandh-highbandl);
-				double bandratio=highbandmean/lowbandmean;
+				bandratio=highbandmean/lowbandmean;
 				mCalcTest.setText("Hi/Lo Ratio= "+decimal.format(bandratio));
 				if (bandratio>triggerratio){
 					tstep2=SystemClock.uptimeMillis();
@@ -395,6 +422,26 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 						stepCount++;
 						mCalcTest.setText(stepCount+" steps recorded.");
 					}
+				}
+			}
+
+			//Andrew stuff
+			if(state == 1){
+				try
+				{
+					cal = Calendar.getInstance();
+					int hr = cal.get(Calendar.HOUR_OF_DAY);
+					int min = cal.get(Calendar.MINUTE);
+					int sec = cal.get(Calendar.SECOND);
+					int msec = cal.get(Calendar.MILLISECOND);
+					String str = x+"\t"+y+"\t"+z+"\t"+dt_and+"\t"+movstate+"\t"+movcond+"\t"+evnt+"\t"+intn+"\t"+bandratio+"\t"+triggerratio+"\t"+hr+"\t"+min+"\t"+sec+"\t"+msec+"\n";
+					// x,y,z,dt,movstate,movcond,evnt,intn,bandratio,triggerratio,hr,min,sec,msec
+					outputStream = new FileOutputStream(newFile,true);
+					outputStream.write(str.getBytes());
+					outputStream.close();
+				}
+				catch (final Exception ex) { 
+					Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace(); 
 				}
 			}
 
@@ -496,17 +543,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			data_y.add(y);
 			data_z.add(z);
 		}
-		if (state == 1){
-			try {
-				String str = x+"\t"+y+"\t"+z+"\t"+dt+"\n";
-				outputStream = new FileOutputStream(newFile,true);
-				outputStream.write(str.getBytes());
-				outputStream.close();
-			}
-			catch (final Exception ex) {
-				Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace();
-			}
-		}
 	}
 
 	public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
@@ -516,27 +552,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 	public void onClick(View v){
 		switch (v.getId()){
-		case R.id.button1:
-			Random num = new Random(); // create Random object
-			v.setBackgroundColor(num.nextInt()); // set button background color to next random integer
-			Vibrator vib = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE); // create Vibrator object
-			// Vibrate for 50 milliseconds
-			beep.start();
-			vib.vibrate(50); // vibrate for 50 ms
-			if(currentAlgorithm==2){
-				stepCount=0;
-				mCalcTest.setText("0 steps recorded");
-			}break;
-		case R.id.button2:
-			if(state == 0){
-				state = 1;
-				v.setBackgroundColor(Color.GREEN);
-			}
-			else {
-				state = 0;
-				v.setBackgroundColor(Color.RED);
-			}
-			break;
 		case R.id.dvbutton:
 			if(currentAlgorithm==1){
 				dataview.setText("Switch from "+algorithm2+" to "+algorithm1);
@@ -555,15 +570,243 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		case R.id.devMode:
 			if (devmodestate==1){
 				devlayout.setVisibility(View.GONE);
+				testlayout.setVisibility(View.GONE);
 				patlayout.setVisibility(View.VISIBLE);
 				devmode.setText("Turn Developer Mode ON");
 				devmodestate=0;
 			}else{
 				devlayout.setVisibility(View.VISIBLE);
+				testlayout.setVisibility(View.VISIBLE);
 				patlayout.setVisibility(View.GONE);
 				devmode.setText("Turn Developer Mode OFF");
 				devmodestate=1;
 			}break;
+			//Andrew
+		case R.id.button1:
+			Context thisContext = getActivity();
+			path = thisContext.getExternalFilesDir(null).getAbsolutePath();
+			dir = new File(path);
+			int n = dir.list().length+1;
+			nam = "/data" + n + ".txt";
+			newFile = new File(path + nam);
+			if(state == 0){
+				state = 1;
+				v.setBackgroundColor(Color.GREEN);
+			}
+			else {
+				state = 0;
+				v.setBackgroundColor(Color.RED);
+			}
+			break;
+		case R.id.button2:
+			if(movstate != 1){
+				movstate = 1;
+				movcond = 0;
+			}
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button3).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button4).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button5).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button6).setVisibility(View.GONE);
+			view.findViewById(R.id.button7).setVisibility(View.GONE);
+			view.findViewById(R.id.button8).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button9).setVisibility(View.GONE);
+			view.findViewById(R.id.button10).setVisibility(View.GONE);
+			view.findViewById(R.id.button11).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button12).setVisibility(View.GONE);
+			view.findViewById(R.id.button13).setVisibility(View.GONE);
+			view.findViewById(R.id.button14).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.buttonp1).setVisibility(View.GONE);
+			view.findViewById(R.id.buttonp2).setVisibility(View.GONE);
+			break;
+		case R.id.button3:
+			if(movstate != 2){
+				movstate = 2;
+				movcond = 0;
+			}
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button2).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button4).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button5).setVisibility(View.GONE);
+			view.findViewById(R.id.button6).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button7).setVisibility(View.GONE);
+			view.findViewById(R.id.button8).setVisibility(View.GONE);
+			view.findViewById(R.id.button9).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button10).setVisibility(View.GONE);
+			view.findViewById(R.id.button11).setVisibility(View.GONE);
+			view.findViewById(R.id.button12).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button13).setVisibility(View.GONE);
+			view.findViewById(R.id.button14).setVisibility(View.GONE);
+			view.findViewById(R.id.buttonp1).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.buttonp2).setVisibility(View.GONE);
+			break;
+		case R.id.button4:
+			if(movstate != 3){
+				movstate = 3;
+				movcond = 0;
+			}
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button2).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button3).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button5).setVisibility(View.GONE);
+			view.findViewById(R.id.button6).setVisibility(View.GONE);
+			view.findViewById(R.id.button7).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button8).setVisibility(View.GONE);
+			view.findViewById(R.id.button9).setVisibility(View.GONE);
+			view.findViewById(R.id.button10).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button11).setVisibility(View.GONE);
+			view.findViewById(R.id.button12).setVisibility(View.GONE);
+			view.findViewById(R.id.button13).setVisibility(View.VISIBLE);
+			view.findViewById(R.id.button14).setVisibility(View.GONE);
+			view.findViewById(R.id.buttonp1).setVisibility(View.GONE);
+			view.findViewById(R.id.buttonp2).setVisibility(View.VISIBLE);
+			break;
+		case R.id.button5:
+			movcond = 1;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button6:
+			movcond = 5;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button7:
+			movcond = 8;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button8:
+			movcond = 2;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button9:
+			movcond = 6;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button10:
+			movcond = 9;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button11:
+			movcond = 3;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button12:
+			movcond = 7;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button13:
+			movcond = 10;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button14).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button14:
+			movcond = 4;
+			v.setBackgroundColor(Color.GREEN);
+			view.findViewById(R.id.button5).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button6).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button7).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button8).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button9).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button10).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button11).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button12).setBackgroundColor(Color.LTGRAY);
+			view.findViewById(R.id.button13).setBackgroundColor(Color.LTGRAY);
+			break;
+		case R.id.button15:
+			if(evnt == 0){
+				evnt = 1;
+			}
+			else {
+				evnt = 0;
+			}
+			break;
+		case R.id.button16:
+			if(intn == 0){
+				intn = 1;
+			}
+			else {
+				intn = 0;
+			}
+			break;
 		}
 
 	}

@@ -88,7 +88,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	ArrayList<Double> accx = new ArrayList<Double>();
 	ArrayList<Double> accy = new ArrayList<Double>();
 	ArrayList<Double> accz = new ArrayList<Double>();
-	int sensorpoints=128;
+	int sensorpoints=64;
 	Complex[] compx = new Complex[sensorpoints];
 	Complex[] compy = new Complex[sensorpoints];
 	Complex[] compz = new Complex[sensorpoints];
@@ -434,7 +434,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 					int min = cal.get(Calendar.MINUTE);
 					int sec = cal.get(Calendar.SECOND);
 					int msec = cal.get(Calendar.MILLISECOND);
-					String str = x+"\t"+y+"\t"+z+"\t"+dt_and+"\t"+movstate+"\t"+movcond+"\t"+evnt+"\t"+intn+"\t"+bandratio+"\t"+triggerratio+"\t"+hr+"\t"+min+"\t"+sec+"\t"+msec+"\n";
+					String str = x+"\t"+y+"\t"+z+"\t"+dt+"\t"+movstate+"\t"+movcond+"\t"+evnt+"\t"+intn+"\t"+bandratio+"\t"+triggerratio+"\t"+hr+"\t"+min+"\t"+sec+"\t"+msec+"\n";
 					// x,y,z,dt,movstate,movcond,evnt,intn,bandratio,triggerratio,hr,min,sec,msec
 					outputStream = new FileOutputStream(newFile,true);
 					outputStream.write(str.getBytes());

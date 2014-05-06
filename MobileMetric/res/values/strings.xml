@@ -15,8 +15,8 @@
     <string name="bt_not_on">Bluetooth was not turned on</string>
     <string name="app_closing">Exiting BLE SensorTag app</string>
     <string-array name="device_filter"><item>SensorTag</item></string-array>
-    <string name="nodevice">There are no SensorTags advertising within range. Please push the side button on the SensorTag to start advertising.</string>
-    <string name="scan_advice">The Android device is not scanning. Please tap \'Scan\' to scan for SensorTags.</string>
+    <string name="nodevice">Looking for your ankle sensor. Make sure the green light is blinking on the sensor.</string>
+    <string name="scan_advice">Your ankle sensor was not found. Press the power button and make sure the green light is blinking, then press the Scan button below. If the green light will not turn on, change the sensor battery.</string>
     
     <!-- Options menu -->
     <string name="prefs">Preferences</string>
@@ -60,5 +60,6 @@
     <string name="cur_image">Current image:</string>
     <string name="idle">idle</string>
     <string name="btn_txt_confirm">Confirm</string>
+    <string name="patAlert">Your device is working. \nPlace phone in pocket and start walking.</string>
 
 </resources>

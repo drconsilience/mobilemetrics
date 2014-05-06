@@ -21,44 +21,65 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" >
-			
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="40sp"
-                android:text="Your device is working!" >    
+                android:text="@string/patAlert"
+                android:textSize="40sp" >
             </TextView>
-            
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dip"
-                android:layout_weight="1"
-                android:orientation="vertical" >
-                
-                <Button 
-                    android:id="@+id/tutorial"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" 
-                    android:textSize="30sp"
-                    android:text="Tutorials"
-                    />
-                <Button 
-                    android:id="@+id/history"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" 
-                    android:textSize="30sp"
-                    android:text="History"
-                    />
-                <Button 
-                    android:id="@+id/exit"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" 
-                    android:textSize="30sp"
-                    android:text="Exit"
-                    />
 
-               
-            </LinearLayout>
+            <Button
+                android:id="@+id/tutorial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tutorials"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="User History"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/clearData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Clear Old Data"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/exit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Exit"
+                android:textSize="30sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/histlayout"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#ffffff"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/histShow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/b_return"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Return"
+                android:textSize="30sp" />
+        </LinearLayout>
+
+        <LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -235,13 +256,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" >
-
-                <SeekBar
-                    android:id="@+id/seekBar1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="10" />
             </LinearLayout>
 
             <LinearLayout
@@ -374,7 +388,8 @@
 
             <TableRow
                 android:id="@+id/statusPanel"
-                style="@style/ServiceRow" >
+                style="@style/ServiceRow"
+                android:visibility="gone" >
 
                 <TextView
                     android:id="@+id/status"

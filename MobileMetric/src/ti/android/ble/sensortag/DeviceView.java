@@ -36,20 +36,26 @@ package ti.android.ble.sensortag;
 import static ti.android.ble.sensortag.SensorTag.UUID_ACC_DATA;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 import ti.android.util.Point3D;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -61,6 +67,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
@@ -100,20 +107,25 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	double meanz=0;
 	double samplefreq=10;
 	double beepwait=1000;
+	int recorded=0;
 	double hzratio=sensorpoints/samplefreq;
-	int lowbandl=(int) Math.ceil(0.5*hzratio);
+	int lowbandl=(int) Math.ceil(1*hzratio);
 	int lowbandh=(int) Math.floor(3*hzratio);
 	int highbandl=(int) Math.ceil(3*hzratio);
 	int highbandh=(int) Math.floor(5*hzratio);
 	boolean beeping=false;
 	double maxtriggerratio=2;
-	double triggerratio=maxtriggerratio;
+	double triggerratio=3;
 	boolean firstbeep=false;
 	String algorithm1="Fourier Method";
 	String algorithm2="Step Detection Method";
 	int currentAlgorithm=1;
 	int devmodestate=1;
+	double bandratiox;
+	double bandratioy;
+	double bandratioz;
 	double bandratio;
+	FileInputStream inputStream;
 
 	GraphViewSeries plotx; // declare GraphView objects for phone
 	GraphViewSeries ploty;
@@ -156,11 +168,13 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	private TableLayout devlayout;
 	private LinearLayout patlayout;
 	private LinearLayout testlayout;
+	private LinearLayout histlayout;
 	private TableLayout dtable;
 	private TextView mAccValue;
 	private TextView mStatus;
 	private TextView mCalcTest;
 	private TextView showRatio;
+	private TextView histshow;
 
 	// House-keeping
 	private DecimalFormat decimal = new DecimalFormat("+0.00;-0.00");
@@ -182,9 +196,15 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	Button devmode;
 	Button btn1;
 	Button btn2;
+	Button exit;
+	Button tutorial;
+	Button clear;
+	Button history;
 	String[] freqs;
 	SeekBar slideRatio;
 	Calendar cal;
+	String name;
+	Button b_return;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -200,6 +220,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		devlayout= (TableLayout) view.findViewById(R.id.developer_layout);
 		patlayout= (LinearLayout) view.findViewById(R.id.patient_layout);
 		testlayout= (LinearLayout) view.findViewById(R.id.testlayout);
+		histlayout=(LinearLayout) view.findViewById(R.id.histlayout);
 
 		// UI widgets
 		mAccValue = (TextView) view.findViewById(R.id.accelerometerTxt);
@@ -209,6 +230,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		yCoor=(TextView)view.findViewById(R.id.ycoor); // create Y axis object
 		zCoor=(TextView)view.findViewById(R.id.zcoor); // create Z axis object
 		dtime=(TextView)view.findViewById(R.id.dt);
+		histshow=(TextView)view.findViewById(R.id.histShow);
 		dtable=(TableLayout)view.findViewById(R.id.datatable);
 		dtable.setVisibility(View.GONE);
 		dataview = (Button)view.findViewById(R.id.dvbutton);
@@ -221,6 +243,27 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		dataview.setText("Switch from "+algorithm1+" to "+algorithm2);
 		mCalcTest.setText("Hi/Lo ratio not yet calculated");
 		patlayout.setVisibility(View.GONE);
+		exit=(Button)view.findViewById(R.id.exit);
+		exit.setOnClickListener(this);
+		tutorial=(Button)view.findViewById(R.id.tutorial);
+		tutorial.setOnClickListener(this);
+		history=(Button)view.findViewById(R.id.history);
+		history.setOnClickListener(this);
+		clear=(Button)view.findViewById(R.id.clearData);
+		clear.setOnClickListener(this);
+		b_return=(Button)view.findViewById(R.id.b_return);
+		b_return.setOnClickListener(this);
+		PowerManager pm;
+
+		pm = (PowerManager) getActivity().getSystemService(Context.POWER_SERVICE);
+		PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+		wl.acquire();
+
+		Context thisOne = getActivity();
+		path = thisOne.getExternalFilesDir(null).getAbsolutePath();
+		dir = new File(path);
+		name = "/data.txt";
+		newFile = new File(path+name);
 
 
 		sensorManager=(SensorManager)getActivity().getSystemService(Context.SENSOR_SERVICE);
@@ -294,8 +337,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		}
 		view.findViewById(R.id.button1).setBackgroundColor(Color.RED);
 
-		SeekBar bar = (SeekBar)view.findViewById(R.id.seekBar1);
-		bar.setOnSeekBarChangeListener(this);
 
 		// Format the view
 		LinearLayout layout = (LinearLayout) view.findViewById(R.id.subLayout);  
@@ -336,8 +377,6 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 
 	@Override
 	public void onPause() {
-		beep.release();
-		beep = null;
 		super.onPause();
 	}
 
@@ -346,6 +385,12 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 	 * */
 
 	public void onCharacteristicChanged(String uuidStr, byte[] rawValue) {
+
+		//Uncomment to do patient version
+		//devlayout.setVisibility(View.GONE);
+		//devmode.setVisibility(View.GONE);
+		//testlayout.setVisibility(View.GONE);
+		//histlayout.setVisibility(View.GONE);
 
 		if (uuidStr.equals(UUID_ACC_DATA.toString())) {
 			Point3D v;
@@ -387,12 +432,23 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				fftx=FFT.fft(compx);
 				ffty=FFT.fft(compy);
 				fftz=FFT.fft(compz);
+				
+				double lowbandmeanx=Complex.mean(Complex.subset(fftx, lowbandl, lowbandh), lowbandh-lowbandl);
+				double highbandmeanx=Complex.mean(Complex.subset(fftx, highbandl, highbandh),highbandh-highbandl);
+				
+				double lowbandmeany=Complex.mean(Complex.subset(ffty, lowbandl, lowbandh), lowbandh-lowbandl);
+				double highbandmeany=Complex.mean(Complex.subset(ffty, highbandl, highbandh),highbandh-highbandl);
 
-				double lowbandmean=Complex.mean(Complex.subset(ffty, lowbandl, lowbandh), lowbandh-lowbandl);
-				double highbandmean=Complex.mean(Complex.subset(ffty, highbandl, highbandh),highbandh-highbandl);
-				bandratio=highbandmean/lowbandmean;
-				mCalcTest.setText("Hi/Lo Ratio= "+decimal.format(bandratio));
-				if (bandratio>triggerratio){
+				double lowbandmeanz=Complex.mean(Complex.subset(fftz, lowbandl, lowbandh), lowbandh-lowbandl);
+				double highbandmeanz=Complex.mean(Complex.subset(fftz, highbandl, highbandh),highbandh-highbandl);
+				bandratiox=highbandmeanx/lowbandmeanx;
+				bandratioy=highbandmeany/lowbandmeany;
+				bandratioz=highbandmeanz/lowbandmeanz;
+				bandratio=(bandratiox+bandratioy+bandratioz)/3;
+				mCalcTest.setText("R:(x)= "+decimal.format(bandratiox)+", (y)= "+decimal.format(bandratioy)+", (z)= "+decimal.format(bandratioz)+ "\n"
+						+"H:(x)= "+decimal.format(highbandmeanx)+", (y)= "+decimal.format(highbandmeany)+", (z)= "+decimal.format(highbandmeanz)+ "\n"
+						+"L:(x)= "+decimal.format(lowbandmeanx)+", (y)= "+decimal.format(lowbandmeany)+", (z)= "+decimal.format(lowbandmeanz));
+				if (bandratioz>triggerratio){
 					tstep2=SystemClock.uptimeMillis();
 					if(tstep2-tstep1>beepwait){	
 						beep.start();
@@ -426,7 +482,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 			}
 
 			//Andrew stuff
-			if(state == 1){
+			/*if(state==1){
 				try
 				{
 					cal = Calendar.getInstance();
@@ -443,6 +499,31 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				catch (final Exception ex) { 
 					Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace(); 
 				}
+			}*/
+
+			if(bandratio>triggerratio){
+				if(recorded==0){
+					try
+					{
+						cal = Calendar.getInstance();
+						int mo = cal.get(Calendar.MONTH)+1;
+						int day = cal.get(Calendar.DATE);
+						int hr = cal.get(Calendar.HOUR_OF_DAY);
+						int min = cal.get(Calendar.MINUTE);
+						String str = mo+"\t"+day+"\t"+hr+"\t"+min+"\n";
+						outputStream = new FileOutputStream(newFile,true);
+						outputStream.write(str.getBytes());
+						outputStream.close();
+						recorded=1;
+					}
+					catch (final Exception ex) { 
+						Log.e("JAVA_DEBUGGING", "Exception while creating save file!"); ex.printStackTrace(); 
+					}
+
+				} 
+
+			}else{
+				recorded=0;
 			}
 
 		}
@@ -807,6 +888,38 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 				intn = 0;
 			}
 			break;
+		case R.id.tutorial:
+			startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("http://youtu.be/VkaqF9MeQnk")));
+			Log.i("Video", "Video Playing....");
+			break;		
+		case R.id.exit:
+			System.exit(0);
+			break;
+		case R.id.clearData:
+			newFile.delete();
+			newFile = new File(path+name);
+			break;
+		case R.id.history:
+			try {
+				inputStream = new FileInputStream(newFile);
+				int num = inputStream.available();
+				byte[] buffer = new byte[num];
+				inputStream.read(buffer);
+				String text = new String(buffer, "UTF-8");
+				histshow.setText(text);
+				histlayout.setVisibility(View.VISIBLE);
+				patlayout.setVisibility(View.GONE);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		case R.id.b_return:
+			histlayout.setVisibility(View.GONE);
+			patlayout.setVisibility(View.VISIBLE);
 		}
 
 	}
@@ -822,6 +935,7 @@ public class DeviceView extends Fragment implements SensorEventListener,OnClickL
 		// TODO Auto-generated method stub
 
 	}
+
 
 }
 
